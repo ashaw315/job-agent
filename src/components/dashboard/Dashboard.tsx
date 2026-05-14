@@ -9,6 +9,7 @@ import JobTable from "./JobTable";
 import DetailPanel from "./DetailPanel";
 import { DEFAULT_FILTERS, DEFAULT_SORT, type Filters, type Sort, type StatusValue } from "./types";
 import { useKeyboardNav } from "./keyboard";
+import Toast from "./Toast";
 
 interface DashboardProps {
   initialJobs: Job[];
@@ -19,6 +20,7 @@ interface DashboardProps {
 
 export default function Dashboard({ initialJobs, lastScraped, boardActiveCount, boardErrorNames }: DashboardProps) {
   const [jobs, setJobs] = useState<Job[]>(initialJobs);
+  const [toast, setToast] = useState<{ message: string; retry?: () => void } | null>(null);
   const [filters, setFilters] = useState<Filters>(DEFAULT_FILTERS);
   const [showArchived, setShowArchived] = useState(false);
   const [sort, setSort] = useState<Sort>(DEFAULT_SORT);
@@ -31,10 +33,14 @@ export default function Dashboard({ initialJobs, lastScraped, boardActiveCount, 
   const selectedJob = useMemo(() => jobs.find(j => j.id === selectedId) ?? null, [jobs, selectedId]);
 
   const handleRefresh = useCallback(async () => {
-    const res = await fetch(`/api/jobs?active=${showArchived ? "false" : "true"}&limit=2000`);
-    if (!res.ok) return;
-    const data = await res.json();
-    setJobs(data.jobs as Job[]);
+    try {
+      const res = await fetch(`/api/jobs?active=${showArchived ? "false" : "true"}&limit=2000`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      setJobs(data.jobs as Job[]);
+    } catch {
+      setToast({ message: "Refresh failed", retry: () => void handleRefresh() });
+    }
   }, [showArchived]);
 
   const setStatusFilter = useCallback((status: StatusValue | null) => {
@@ -56,11 +62,12 @@ export default function Dashboard({ initialJobs, lastScraped, boardActiveCount, 
         body: JSON.stringify({ ids: [id], updates }),
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    } catch (err) {
-      // revert
+    } catch {
       if (prev) setJobs(curr => curr.map(j => j.id === id ? prev : j));
-      // Toast handling comes in Task 13
-      console.error("PATCH failed:", err);
+      setToast({
+        message: "Couldn't update job",
+        retry: () => void patchJob(id, updates),
+      });
     }
   }, [jobs]);
 
@@ -125,6 +132,11 @@ export default function Dashboard({ initialJobs, lastScraped, boardActiveCount, 
             notesTextareaRef={notesRef}
           />
         )}
+        <Toast
+          message={toast?.message ?? null}
+          onRetry={toast?.retry}
+          onDismiss={() => setToast(null)}
+        />
       </div>
       <div className="too-narrow">
         <div>
