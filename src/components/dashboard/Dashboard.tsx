@@ -1,6 +1,8 @@
 "use client";
 
+import { useState, useCallback } from "react";
 import type { Job } from "@/lib/db/schema";
+import Topbar from "./Topbar";
 
 interface DashboardProps {
   initialJobs: Job[];
@@ -8,17 +10,21 @@ interface DashboardProps {
 }
 
 export default function Dashboard({ initialJobs, lastScraped }: DashboardProps) {
+  const [jobs, setJobs] = useState<Job[]>(initialJobs);
+
+  const handleRefresh = useCallback(async () => {
+    const res = await fetch("/api/jobs?active=true&limit=2000");
+    if (!res.ok) return; // Toast handling comes in Task 13
+    const data = await res.json();
+    setJobs(data.jobs as Job[]);
+  }, []);
+
   return (
     <div className="flex h-screen flex-col">
-      <div className="border-b border-[color:var(--border)] px-4 py-2 text-[11px]">
-        <span className="text-[color:var(--text-sec)]">job-agent</span>
-        <span className="float-right text-[color:var(--text-sec)]">
-          {lastScraped ? `Last scraped ${lastScraped}` : "Never scraped"}
-        </span>
-      </div>
-      <div className="flex-1 p-4 text-[color:var(--text-sec)]">
-        {initialJobs.length} jobs loaded (dashboard chrome coming in next tasks)
-      </div>
+      <Topbar lastScraped={lastScraped} onRefresh={handleRefresh} />
+      <main className="flex-1 p-4 text-[color:var(--text-sec)]">
+        {jobs.length} jobs loaded — chrome coming in next tasks
+      </main>
     </div>
   );
 }
