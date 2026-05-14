@@ -5,7 +5,8 @@ import type { Job } from "@/lib/db/schema";
 import Topbar from "./Topbar";
 import StatsBar from "./StatsBar";
 import FilterBar from "./FilterBar";
-import { DEFAULT_FILTERS, type Filters, type StatusValue } from "./types";
+import JobTable from "./JobTable";
+import { DEFAULT_FILTERS, DEFAULT_SORT, type Filters, type Sort, type StatusValue } from "./types";
 
 interface DashboardProps {
   initialJobs: Job[];
@@ -18,6 +19,10 @@ export default function Dashboard({ initialJobs, lastScraped, boardActiveCount, 
   const [jobs, setJobs] = useState<Job[]>(initialJobs);
   const [filters, setFilters] = useState<Filters>(DEFAULT_FILTERS);
   const [showArchived, setShowArchived] = useState(false);
+  const [sort, setSort] = useState<Sort>(DEFAULT_SORT);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [focusedId, setFocusedId] = useState<string | null>(null);
+  const visibleIdsRef = useRef<string[]>([]);
   const searchRef = useRef<HTMLInputElement>(null);
 
   const handleRefresh = useCallback(async () => {
@@ -31,8 +36,12 @@ export default function Dashboard({ initialJobs, lastScraped, boardActiveCount, 
     setFilters(prev => ({ ...prev, status }));
   }, []);
 
+  const handleVisibleChange = useCallback((ids: string[]) => {
+    visibleIdsRef.current = ids;
+  }, []);
+
   return (
-    <div className="flex h-screen flex-col">
+    <div className="flex h-screen flex-col bg-[color:var(--bg)]">
       <Topbar lastScraped={lastScraped} onRefresh={handleRefresh} />
       <StatsBar
         jobs={jobs}
@@ -49,9 +58,18 @@ export default function Dashboard({ initialJobs, lastScraped, boardActiveCount, 
         onChange={setFilters}
         onToggleArchived={setShowArchived}
       />
-      <main className="flex-1 p-4 text-[color:var(--text-sec)] text-[11px]">
-        Filters: {JSON.stringify({ ...filters, showArchived })} · {jobs.length} jobs · table comes next
-      </main>
+      <JobTable
+        jobs={jobs}
+        filters={filters}
+        showArchived={showArchived}
+        sort={sort}
+        onSortChange={setSort}
+        focusedId={focusedId}
+        selectedId={selectedId}
+        onFocus={setFocusedId}
+        onSelect={setSelectedId}
+        onVisibleChange={handleVisibleChange}
+      />
     </div>
   );
 }
