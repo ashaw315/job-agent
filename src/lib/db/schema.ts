@@ -38,6 +38,8 @@ export const jobs = pgTable(
     keywordScore: real("keyword_score"),
     aiScore: real("ai_score"),
     aiReasoning: text("ai_reasoning"),
+    aiGreenFlags: text("ai_green_flags"),
+    aiRedFlags: text("ai_red_flags"),
     aiScoredAt: timestamp("ai_scored_at", { withTimezone: true }),
 
     // Application tracking

@@ -194,6 +194,8 @@ async function runAIScoring(): Promise<number> {
     if (result) {
       updates.aiScore = result.score;
       updates.aiReasoning = result.reasoning;
+      updates.aiGreenFlags = result.green_flags;
+      updates.aiRedFlags = result.red_flags;
       updates.tier = result.tier;
       updates.roleCategory = result.role_category;
       scored++;
