@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useMemo } from "react";
 import type { Job } from "@/lib/db/schema";
 import Topbar from "./Topbar";
 import StatsBar from "./StatsBar";
 import FilterBar from "./FilterBar";
 import JobTable from "./JobTable";
+import DetailPanel from "./DetailPanel";
 import { DEFAULT_FILTERS, DEFAULT_SORT, type Filters, type Sort, type StatusValue } from "./types";
 
 interface DashboardProps {
@@ -24,6 +25,9 @@ export default function Dashboard({ initialJobs, lastScraped, boardActiveCount, 
   const [focusedId, setFocusedId] = useState<string | null>(null);
   const visibleIdsRef = useRef<string[]>([]);
   const searchRef = useRef<HTMLInputElement>(null);
+  const notesRef = useRef<HTMLTextAreaElement>(null);
+
+  const selectedJob = useMemo(() => jobs.find(j => j.id === selectedId) ?? null, [jobs, selectedId]);
 
   const handleRefresh = useCallback(async () => {
     const res = await fetch(`/api/jobs?active=${showArchived ? "false" : "true"}&limit=2000`);
@@ -39,6 +43,35 @@ export default function Dashboard({ initialJobs, lastScraped, boardActiveCount, 
   const handleVisibleChange = useCallback((ids: string[]) => {
     visibleIdsRef.current = ids;
   }, []);
+
+  const patchJob = useCallback(async (id: string, updates: Record<string, unknown>) => {
+    const prev = jobs.find(j => j.id === id);
+    // optimistic
+    setJobs(curr => curr.map(j => j.id === id ? { ...j, ...mapApiToJob(updates) } : j));
+    try {
+      const res = await fetch("/api/jobs", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids: [id], updates }),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    } catch (err) {
+      // revert
+      if (prev) setJobs(curr => curr.map(j => j.id === id ? prev : j));
+      // Toast handling comes in Task 13
+      console.error("PATCH failed:", err);
+    }
+  }, [jobs]);
+
+  const handleUpdateStatus = useCallback((status: StatusValue) => {
+    if (!selectedId) return;
+    patchJob(selectedId, { status });
+  }, [selectedId, patchJob]);
+
+  const handleUpdateNotes = useCallback((notes: string) => {
+    if (!selectedId) return;
+    patchJob(selectedId, { notes });
+  }, [selectedId, patchJob]);
 
   return (
     <div className="flex h-screen flex-col bg-[color:var(--bg)]">
@@ -70,6 +103,28 @@ export default function Dashboard({ initialJobs, lastScraped, boardActiveCount, 
         onSelect={setSelectedId}
         onVisibleChange={handleVisibleChange}
       />
+      {selectedJob && (
+        <DetailPanel
+          key={selectedJob.id}
+          job={selectedJob}
+          onClose={() => setSelectedId(null)}
+          onUpdateStatus={handleUpdateStatus}
+          onUpdateNotes={handleUpdateNotes}
+          notesTextareaRef={notesRef}
+        />
+      )}
     </div>
   );
+}
+
+/** Map API snake_case keys back to camelCase Job columns for optimistic state. */
+function mapApiToJob(updates: Record<string, unknown>): Partial<Job> {
+  const out: Record<string, unknown> = {};
+  if ("status" in updates) out.status = updates.status;
+  if ("notes" in updates) out.notes = updates.notes;
+  if ("applied_date" in updates) out.appliedDate = updates.applied_date ? new Date(updates.applied_date as string) : null;
+  if ("is_active" in updates) out.isActive = updates.is_active;
+  if ("tier" in updates) out.tier = updates.tier;
+  if ("role_category" in updates) out.roleCategory = updates.role_category;
+  return out as Partial<Job>;
 }
