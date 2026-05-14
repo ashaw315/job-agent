@@ -8,6 +8,7 @@ import FilterBar from "./FilterBar";
 import JobTable from "./JobTable";
 import DetailPanel from "./DetailPanel";
 import { DEFAULT_FILTERS, DEFAULT_SORT, type Filters, type Sort, type StatusValue } from "./types";
+import { useKeyboardNav } from "./keyboard";
 
 interface DashboardProps {
   initialJobs: Job[];
@@ -72,6 +73,16 @@ export default function Dashboard({ initialJobs, lastScraped, boardActiveCount, 
     if (!selectedId) return;
     patchJob(selectedId, { notes });
   }, [selectedId, patchJob]);
+
+  useKeyboardNav({
+    visibleIds: useCallback(() => visibleIdsRef.current, []),
+    focusedId,
+    setFocusedId,
+    selectedId,
+    setSelectedId,
+    onChangeStatus: handleUpdateStatus,
+    focusSearch: useCallback(() => searchRef.current?.focus(), []),
+  });
 
   return (
     <div className="flex h-screen flex-col bg-[color:var(--bg)]">
