@@ -129,6 +129,7 @@ export interface CompanySeed {
   board_url: string;
   category: CompanyCategory;
   priority?: 1 | 2 | 3;
+  is_active?: boolean;
 }
 
 export const INITIAL_COMPANIES: CompanySeed[] = [
@@ -139,6 +140,7 @@ export const INITIAL_COMPANIES: CompanySeed[] = [
     board_url: "https://boards.greenhouse.io/artsy",
     category: "art_world",
     priority: 1,
+    is_active: false, // private board, needs custom scraper
   },
   {
     name: "Sothebys",
@@ -157,8 +159,8 @@ export const INITIAL_COMPANIES: CompanySeed[] = [
   },
   {
     name: "Linear",
-    ats: "greenhouse",
-    board_url: "https://boards.greenhouse.io/linear",
+    ats: "ashby",
+    board_url: "https://jobs.ashbyhq.com/Linear",
     category: "design_forward",
   },
   {
@@ -169,8 +171,8 @@ export const INITIAL_COMPANIES: CompanySeed[] = [
   },
   {
     name: "Notion",
-    ats: "greenhouse",
-    board_url: "https://boards.greenhouse.io/notion",
+    ats: "ashby",
+    board_url: "https://jobs.ashbyhq.com/notion",
     category: "design_forward",
   },
   {
@@ -181,34 +183,34 @@ export const INITIAL_COMPANIES: CompanySeed[] = [
   },
   {
     name: "Resend",
-    ats: "greenhouse",
-    board_url: "https://boards.greenhouse.io/resend",
+    ats: "ashby",
+    board_url: "https://jobs.ashbyhq.com/resend",
     category: "design_forward",
   },
   {
     name: "Raycast",
-    ats: "greenhouse",
-    board_url: "https://boards.greenhouse.io/raycast",
+    ats: "ashby",
+    board_url: "https://jobs.ashbyhq.com/raycast",
     category: "design_forward",
   },
   {
     name: "The Browser Company",
-    ats: "greenhouse",
-    board_url: "https://boards.greenhouse.io/thebrowsercompany",
+    ats: "ashby",
+    board_url: "https://jobs.ashbyhq.com/the%20browser%20company",
     category: "design_forward",
   },
 
   // AI companies
   {
     name: "ElevenLabs",
-    ats: "greenhouse",
-    board_url: "https://boards.greenhouse.io/elevenlabs",
+    ats: "ashby",
+    board_url: "https://jobs.ashbyhq.com/elevenlabs",
     category: "ai",
   },
   {
     name: "Runway",
-    ats: "greenhouse",
-    board_url: "https://boards.greenhouse.io/runwayml",
+    ats: "ashby",
+    board_url: "https://jobs.ashbyhq.com/runway-ml",
     category: "ai",
     priority: 1,
   },
@@ -253,5 +255,6 @@ export const INITIAL_COMPANIES: CompanySeed[] = [
     ats: "lever",
     board_url: "https://jobs.lever.co/doji",
     category: "startup",
+    is_active: false, // company appears dead / not hiring
   },
 ];

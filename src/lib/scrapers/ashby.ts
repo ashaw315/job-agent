@@ -12,6 +12,7 @@ interface AshbyJob {
   isRemote?: boolean;
   compensation?: { compensationTierSummary?: string };
   jobUrl?: string;
+  publishedAt?: string;
 }
 
 interface AshbyResponse {
@@ -25,8 +26,8 @@ function extractAshbySlug(boardUrl: string): string | null {
 
 /**
  * Scrape all postings from an Ashby job board.
- * Ashby uses a POST endpoint:
- *   POST https://api.ashbyhq.com/posting-api/job-board/{org}
+ *   GET https://api.ashbyhq.com/posting-api/job-board/{org}
+ * POST on the same path returns 401 even for valid slugs.
  */
 export async function scrapeAshby(
   company: WatchedCompany
@@ -48,9 +49,7 @@ export async function scrapeAshby(
   try {
     const url = `https://api.ashbyhq.com/posting-api/job-board/${slug}`;
     const res = await fetch(url, {
-      method: "POST",
-      headers: { Accept: "application/json", "Content-Type": "application/json" },
-      body: JSON.stringify({}),
+      headers: { Accept: "application/json" },
       signal: AbortSignal.timeout(15000),
     });
 
@@ -76,7 +75,7 @@ export async function scrapeAshby(
       description: job.descriptionPlain || stripHtml(job.descriptionHtml || ""),
       location: job.location || (job.isRemote ? "Remote" : ""),
       salary_text: job.compensation?.compensationTierSummary || null,
-      date_posted: job.publishedDate || null,
+      date_posted: job.publishedAt || job.publishedDate || null,
     }));
 
     return result;

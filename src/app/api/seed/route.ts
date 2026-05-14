@@ -23,7 +23,7 @@ export async function POST(request: Request) {
       boardUrl: c.board_url,
       category: c.category,
       priority: c.priority || 2,
-      isActive: true,
+      isActive: c.is_active ?? true,
     }));
 
     const result = await db

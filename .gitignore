@@ -40,6 +40,9 @@ yarn-error.log*
 # claude code local settings
 .claude/
 
+# local one-off scripts (db queries, migrations run by hand)
+.*.mjs
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
