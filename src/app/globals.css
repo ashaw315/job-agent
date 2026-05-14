@@ -51,3 +51,21 @@ body {
   background: var(--accent-bg);
   color: var(--text-pri);
 }
+
+.too-narrow {
+  display: none;
+}
+
+@media (max-width: 1023px) {
+  .dashboard-root { display: none !important; }
+  .too-narrow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 2rem;
+    text-align: center;
+    color: var(--text-sec);
+    font-size: 13px;
+  }
+}

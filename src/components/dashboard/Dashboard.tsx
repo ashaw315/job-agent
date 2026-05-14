@@ -85,46 +85,54 @@ export default function Dashboard({ initialJobs, lastScraped, boardActiveCount, 
   });
 
   return (
-    <div className="flex h-screen flex-col bg-[color:var(--bg)]">
-      <Topbar lastScraped={lastScraped} onRefresh={handleRefresh} />
-      <StatsBar
-        jobs={jobs}
-        filters={filters}
-        onSetStatusFilter={setStatusFilter}
-        boardActiveCount={boardActiveCount}
-        boardErrorCount={boardErrorNames.length}
-        boardErrorNames={boardErrorNames}
-      />
-      <FilterBar
-        ref={searchRef}
-        filters={filters}
-        showArchived={showArchived}
-        onChange={setFilters}
-        onToggleArchived={setShowArchived}
-      />
-      <JobTable
-        jobs={jobs}
-        filters={filters}
-        showArchived={showArchived}
-        sort={sort}
-        onSortChange={setSort}
-        focusedId={focusedId}
-        selectedId={selectedId}
-        onFocus={setFocusedId}
-        onSelect={setSelectedId}
-        onVisibleChange={handleVisibleChange}
-      />
-      {selectedJob && (
-        <DetailPanel
-          key={selectedJob.id}
-          job={selectedJob}
-          onClose={() => setSelectedId(null)}
-          onUpdateStatus={handleUpdateStatus}
-          onUpdateNotes={handleUpdateNotes}
-          notesTextareaRef={notesRef}
+    <>
+      <div className="dashboard-root flex h-screen flex-col bg-[color:var(--bg)]">
+        <Topbar lastScraped={lastScraped} onRefresh={handleRefresh} />
+        <StatsBar
+          jobs={jobs}
+          filters={filters}
+          onSetStatusFilter={setStatusFilter}
+          boardActiveCount={boardActiveCount}
+          boardErrorCount={boardErrorNames.length}
+          boardErrorNames={boardErrorNames}
         />
-      )}
-    </div>
+        <FilterBar
+          ref={searchRef}
+          filters={filters}
+          showArchived={showArchived}
+          onChange={setFilters}
+          onToggleArchived={setShowArchived}
+        />
+        <JobTable
+          jobs={jobs}
+          filters={filters}
+          showArchived={showArchived}
+          sort={sort}
+          onSortChange={setSort}
+          focusedId={focusedId}
+          selectedId={selectedId}
+          onFocus={setFocusedId}
+          onSelect={setSelectedId}
+          onVisibleChange={handleVisibleChange}
+        />
+        {selectedJob && (
+          <DetailPanel
+            key={selectedJob.id}
+            job={selectedJob}
+            onClose={() => setSelectedId(null)}
+            onUpdateStatus={handleUpdateStatus}
+            onUpdateNotes={handleUpdateNotes}
+            notesTextareaRef={notesRef}
+          />
+        )}
+      </div>
+      <div className="too-narrow">
+        <div>
+          <div className="mb-1 font-mono text-[color:var(--text-pri)]">job-agent</div>
+          <div>Open on desktop · ≥1024px</div>
+        </div>
+      </div>
+    </>
   );
 }
 
