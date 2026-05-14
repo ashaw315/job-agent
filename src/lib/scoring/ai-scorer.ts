@@ -36,6 +36,13 @@ Rate this job's fit on a scale of 1-100 and explain your reasoning. Consider:
 5. Is this a role where he'd be competitive against the typical applicant pool?
 6. Does this align with his goal of finding a role that uses both creative and technical skills?
 
+IMPORTANT SCORING GUIDANCE:
+- Be skeptical, not generous. A score of 70+ should mean "Adam would likely get an interview." A score of 50-69 means "worth applying but it's a stretch." Below 50 means "don't bother."
+- If the role requires specific professional experience Adam doesn't have (e.g., "5+ years leading brand campaigns"), score it below 40 regardless of other signals.
+- Distinguish between "nice to have" and "required" qualifications. Adam's MFA and art background can cover "nice to have" creative experience, but cannot substitute for required years in a specific professional discipline.
+- A title match alone is not sufficient. "Creative Director" matches his interests but he cannot compete for that title today.
+- Weight realistic competitiveness heavily. Ask: "Would a hiring manager look at Adam's resume and see someone qualified, or someone aspirational?"
+
 Respond in JSON only, no markdown fences:
 {"score": <number 1-100>, "reasoning": "<2-3 sentences>", "tier": <1|2|3>, "role_category": "<category>", "salary_estimate": "<range if not listed>", "red_flags": "<any concerns>", "green_flags": "<strongest fit signals>"}`;
 
