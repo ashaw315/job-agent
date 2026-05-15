@@ -9,11 +9,18 @@ const CATEGORY_VALUES = [
   "art_world", "design_forward", "ai", "studio",
   "brand", "tech", "startup", "museum", "media",
 ] as const;
+const CUSTOM_SCRAPER_OPTIONS = [
+  { value: "", label: "(none)" },
+  { value: "builtinnyc", label: "BuiltInNYC" },
+  { value: "weworkremotely", label: "We Work Remotely" },
+  { value: "whitney", label: "Whitney" },
+] as const;
 
 interface FormState {
   name: string;
   ats: string;
   boardUrl: string;
+  customScraper: string;
   category: string;
   priority: number;
   isActive: boolean;
@@ -32,6 +39,7 @@ export default function CompanyPanel({ company, onClose, onSaved }: CompanyPanel
     name: company?.name ?? "",
     ats: company?.ats ?? "greenhouse",
     boardUrl: company?.boardUrl ?? "",
+    customScraper: company?.customScraper ?? "",
     category: company?.category ?? "tech",
     priority: company?.priority ?? 2,
     isActive: company?.isActive ?? true,
@@ -52,6 +60,7 @@ export default function CompanyPanel({ company, onClose, onSaved }: CompanyPanel
             name: form.name,
             ats: form.ats,
             board_url: form.boardUrl,
+            custom_scraper: form.customScraper || null,
             category: form.category,
             priority: form.priority,
           }),
@@ -70,6 +79,7 @@ export default function CompanyPanel({ company, onClose, onSaved }: CompanyPanel
               name: form.name,
               ats: form.ats,
               board_url: form.boardUrl,
+              custom_scraper: form.customScraper || null,
               category: form.category,
               priority: form.priority,
               is_active: form.isActive,
@@ -159,6 +169,19 @@ export default function CompanyPanel({ company, onClose, onSaved }: CompanyPanel
               {ATS_VALUES.map(v => <option key={v} value={v}>{v}</option>)}
             </select>
           </Field>
+          {form.ats === "custom" && (
+            <Field label="Custom scraper">
+              <select
+                value={form.customScraper}
+                onChange={e => setForm({ ...form, customScraper: e.target.value })}
+                className="input"
+              >
+                {CUSTOM_SCRAPER_OPTIONS.map(o => (
+                  <option key={o.value} value={o.value}>{o.label}</option>
+                ))}
+              </select>
+            </Field>
+          )}
           <Field label="Board URL">
             <input
               type="text"

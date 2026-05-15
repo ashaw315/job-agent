@@ -28,7 +28,7 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { name, ats, board_url, category, priority } = body;
+    const { name, ats, board_url, custom_scraper, category, priority } = body;
 
     if (!name || !ats || !board_url) {
       return NextResponse.json(
@@ -43,6 +43,7 @@ export async function POST(request: NextRequest) {
         name,
         ats,
         boardUrl: board_url,
+        customScraper: custom_scraper ?? null,
         category: category || null,
         priority: priority || 2,
         isActive: true,
@@ -73,6 +74,7 @@ export async function PATCH(request: NextRequest) {
     if ("name" in updates) safeUpdates.name = updates.name;
     if ("ats" in updates) safeUpdates.ats = updates.ats;
     if ("board_url" in updates) safeUpdates.boardUrl = updates.board_url;
+    if ("custom_scraper" in updates) safeUpdates.customScraper = updates.custom_scraper;
     if ("category" in updates) safeUpdates.category = updates.category;
     if ("priority" in updates) safeUpdates.priority = updates.priority;
     if ("is_active" in updates) safeUpdates.isActive = updates.is_active;
