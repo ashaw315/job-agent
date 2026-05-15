@@ -5,13 +5,15 @@ import { useEffect } from "react";
 import type { WatchedCompany } from "@/lib/db/schema";
 import type { HardFilters } from "@/lib/settings/hard-filters";
 import type { NotificationPrefs } from "@/lib/settings/notifications";
+import type { InsightsContent } from "@/lib/insights/analyze";
 import ProfileTab from "./ProfileTab";
 import FiltersTab from "./FiltersTab";
 import CompaniesTab from "./CompaniesTab";
 import NotificationsTab from "./NotificationsTab";
+import InsightsTab from "./InsightsTab";
 import DangerTab from "./DangerTab";
 
-const TAB_VALUES = ["profile", "filters", "companies", "notifications", "danger"] as const;
+const TAB_VALUES = ["profile", "filters", "companies", "notifications", "insights", "danger"] as const;
 type TabValue = typeof TAB_VALUES[number];
 
 interface SettingsProps {
@@ -19,11 +21,12 @@ interface SettingsProps {
   initialHardFilters: HardFilters;
   initialCompanies: WatchedCompany[];
   initialNotifications: NotificationPrefs;
+  initialInsights: InsightsContent | null;
   jobsTotal: number;
   lastScrapedLabel: string | null;
 }
 
-export default function Settings({ initialProfile, initialHardFilters, initialCompanies, initialNotifications, jobsTotal, lastScrapedLabel }: SettingsProps) {
+export default function Settings({ initialProfile, initialHardFilters, initialCompanies, initialNotifications, initialInsights, jobsTotal, lastScrapedLabel }: SettingsProps) {
   const sp = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
@@ -52,6 +55,7 @@ export default function Settings({ initialProfile, initialHardFilters, initialCo
         <TabButton label="Hard Filters" value="filters" active={tab === "filters"} onClick={setTab} />
         <TabButton label="Watched Companies" value="companies" active={tab === "companies"} onClick={setTab} />
         <TabButton label="Notifications" value="notifications" active={tab === "notifications"} onClick={setTab} />
+        <TabButton label="Score Insights" value="insights" active={tab === "insights"} onClick={setTab} />
         <TabButton label="● Danger Zone" value="danger" active={tab === "danger"} onClick={setTab} danger />
       </div>
       <div className="flex-1 overflow-y-auto">
@@ -66,6 +70,9 @@ export default function Settings({ initialProfile, initialHardFilters, initialCo
         )}
         {tab === "notifications" && (
           <NotificationsTab initialNotifications={initialNotifications} />
+        )}
+        {tab === "insights" && (
+          <InsightsTab initialInsights={initialInsights} />
         )}
         {tab === "danger" && <DangerTab jobsTotal={jobsTotal} />}
       </div>

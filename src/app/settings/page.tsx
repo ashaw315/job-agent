@@ -6,15 +6,17 @@ import Settings from "@/components/settings/Settings";
 import { getProfile } from "@/lib/settings/profile";
 import { getHardFilters } from "@/lib/settings/hard-filters";
 import { getNotificationPrefs } from "@/lib/settings/notifications";
+import { getCachedInsights } from "@/lib/insights/analyze";
 import { relativeDate } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
 
 export default async function SettingsPage() {
-  const [profile, hardFilters, notifications, companies, jobsCountRow, lastScrapeRow] = await Promise.all([
+  const [profile, hardFilters, notifications, insights, companies, jobsCountRow, lastScrapeRow] = await Promise.all([
     getProfile(),
     getHardFilters(),
     getNotificationPrefs(),
+    getCachedInsights(),
     db
       .select()
       .from(watchedCompanies)
@@ -35,6 +37,7 @@ export default async function SettingsPage() {
         initialHardFilters={hardFilters}
         initialCompanies={companies}
         initialNotifications={notifications}
+        initialInsights={insights}
         jobsTotal={jobsTotal}
         lastScrapedLabel={lastScrapedLabel}
       />
