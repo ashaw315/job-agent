@@ -91,7 +91,7 @@ Don't test scrapers or API routes directly — they hit external services and th
 
 ## Not yet implemented
 
-- **Dashboard UI** — `src/app/page.tsx` is the default Next.js starter. The spec calls for a Linear/Raycast-inspired dense tool UI with dark mode, keyboard navigation, and filterable job list. This is Phase 3 and the main portfolio piece.
+- **Keyword weights and score thresholds in the Settings UI** — `POSITIVE_SIGNALS`, `NEGATIVE_SIGNALS`, and `SCORE_THRESHOLD_*` are still in `src/lib/constants.ts`. The `/settings` page (shipped) covers profile, hard filters, and watched companies; weight tuning would be next.
 - **Daily digest email** — `src/lib/notifications/email.ts` is a stub. Uses Resend. Phase 2.
 - **HTML scrapers** — BuiltInNYC, NYFA, designengineer.io. Phase 4. The `custom` ATS type exists in the router but returns an error. These will use cheerio (already installed) and will break when sites update — build with graceful failure and logging.
 - **Auth** — None. Single-user app. Service-role DB access server-side only. If this ever becomes multi-user, add RLS then.
