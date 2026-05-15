@@ -4,6 +4,7 @@ import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { useEffect } from "react";
 import type { WatchedCompany } from "@/lib/db/schema";
 import type { HardFilters } from "@/lib/settings/hard-filters";
+import ProfileTab from "./ProfileTab";
 
 const TAB_VALUES = ["profile", "filters", "companies", "danger"] as const;
 type TabValue = typeof TAB_VALUES[number];
@@ -48,7 +49,7 @@ export default function Settings({ initialProfile, initialHardFilters, initialCo
       </div>
       <div className="flex-1 overflow-y-auto">
         {tab === "profile" && (
-          <Placeholder name={`Profile (${initialProfile.length} chars loaded)`} />
+          <ProfileTab initialProfile={initialProfile} jobsTotal={jobsTotal} />
         )}
         {tab === "filters" && (
           <Placeholder name={`Hard Filters (${JSON.stringify(initialHardFilters)})`} />
