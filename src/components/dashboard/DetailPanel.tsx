@@ -78,6 +78,11 @@ export default function DetailPanel({ job, onClose, onUpdateStatus, onUpdateNote
               )}
             </div>
             <div className="mt-0.5 text-[11px] text-[color:var(--text-sec)]">{subtitleParts.join(" · ")}</div>
+            {job.source === "manual" && (
+              <div className="mt-1 text-[10px] uppercase tracking-wider text-[color:var(--accent)]">
+                Manually added
+              </div>
+            )}
           </div>
           <div className="flex items-start gap-3">
             <div className="text-right">

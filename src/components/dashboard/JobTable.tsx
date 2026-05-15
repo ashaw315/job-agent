@@ -109,7 +109,12 @@ export default function JobTable({
               style={{ gridTemplateColumns: "minmax(0, 2.4fr) minmax(0, 1.3fr) minmax(0, 1.4fr) 50px 40px 80px 50px" }}
             >
               <div className="truncate px-2.5">{job.title}</div>
-              <div className="truncate px-2.5 text-[color:var(--text-sec)]">{job.companyDisplayName ?? job.companyName}</div>
+              <div className="truncate px-2.5 text-[color:var(--text-sec)]">
+                {job.companyDisplayName ?? job.companyName}
+                {job.source === "manual" && (
+                  <span className="ml-1.5 font-mono text-[9px] text-[color:var(--accent)]" title="Manually added">·M·</span>
+                )}
+              </div>
               <div className="truncate px-2.5 text-[color:var(--text-sec)]">{job.location || "—"}</div>
               <div className={"px-2.5 text-right font-mono text-[11px] tabular-nums " + (s.source === "ai" ? "text-[color:var(--text-pri)]" : "text-[color:var(--text-sec)]")}>
                 {s.value}

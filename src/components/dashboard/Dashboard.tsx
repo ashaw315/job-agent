@@ -10,6 +10,7 @@ import DetailPanel from "./DetailPanel";
 import { DEFAULT_FILTERS, DEFAULT_SORT, type Filters, type Sort, type StatusValue } from "./types";
 import { useKeyboardNav } from "./keyboard";
 import Toast from "./Toast";
+import UrlBar from "./UrlBar";
 
 interface DashboardProps {
   initialJobs: Job[];
@@ -95,6 +96,11 @@ export default function Dashboard({ initialJobs, lastScraped, boardActiveCount, 
     <>
       <div className="dashboard-root flex h-screen flex-col bg-[color:var(--bg)]">
         <Topbar lastScraped={lastScraped} onRefresh={handleRefresh} />
+        <UrlBar
+          onJobAdded={(job) => setJobs(prev => [job, ...prev])}
+          onSelectJob={(jobId) => setSelectedId(jobId)}
+          onToast={(t) => setToast({ message: t.message })}
+        />
         <StatsBar
           jobs={jobs}
           filters={filters}
