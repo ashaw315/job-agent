@@ -5,19 +5,7 @@ import { AI_SCORING_MODEL, AI_SCORING_MAX_TOKENS } from "../constants";
 const AI_SCORING_PROMPT = `You are evaluating a job listing for fit with a specific candidate.
 
 ## Candidate Profile
-- 38 years old, based in Brooklyn, NYC
-- MFA in Studio Art from Hunter College (2020), BS in Studio Art from Skidmore (2005-2010)
-- Full-stack developer: React, Redux, Next.js, TypeScript, Ruby on Rails, Node.js, GraphQL, PostgreSQL, AWS, Kafka
-- Currently Software Developer at Booz Allen Hamilton (2023-present): enterprise-scale VA applications, Kafka messaging systems, React modernization
-- Previously Software Engineer at RGB Systems (2022-2023): client websites, Gatsby, Strapi, Shopify, WordPress
-- Pre-tech: elementary school art teacher (~2011-2013), freelance art handler at NYC galleries/institutions (~2013-2021)
-- Fabrication skills: laser cutting, vinyl cutting, 3D printing, SketchUp
-- Design tools: Adobe Creative Suite
-- Fine art practice: gallery exhibitions, painting, installation, mixed media, image transfer, silkscreen
-- Conceptual coding projects: AI/LoRA generative art, datamosh video archive, collaborative drawing tools
-- Has led projects but not managed people directly
-- Salary floor: $110,000
-- Wants: full-time, NYC or remote, hybrid OK. No freelance, no academia.
+{profile}
 
 ## Job Listing
 Title: {title}
@@ -49,8 +37,9 @@ Respond in JSON only, no markdown fences:
 /**
  * Score a job using Claude API.
  * Only called for jobs with keyword_score >= 50 that haven't been AI-scored yet.
+ * Profile is read by the pipeline once per run and passed in here.
  */
-export async function scoreWithAI(job: Job): Promise<AIScoreResponse | null> {
+export async function scoreWithAI(job: Job, profile: string): Promise<AIScoreResponse | null> {
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
     console.warn("ANTHROPIC_API_KEY not set — skipping AI scoring");
@@ -58,6 +47,7 @@ export async function scoreWithAI(job: Job): Promise<AIScoreResponse | null> {
   }
 
   const prompt = AI_SCORING_PROMPT
+    .replace("{profile}", profile)
     .replace("{title}", job.title)
     .replace("{company}", job.companyDisplayName || job.companyName)
     .replace("{location}", job.location || "Not specified")
