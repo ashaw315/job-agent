@@ -4,23 +4,26 @@ import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { useEffect } from "react";
 import type { WatchedCompany } from "@/lib/db/schema";
 import type { HardFilters } from "@/lib/settings/hard-filters";
+import type { NotificationPrefs } from "@/lib/settings/notifications";
 import ProfileTab from "./ProfileTab";
 import FiltersTab from "./FiltersTab";
 import CompaniesTab from "./CompaniesTab";
+import NotificationsTab from "./NotificationsTab";
 import DangerTab from "./DangerTab";
 
-const TAB_VALUES = ["profile", "filters", "companies", "danger"] as const;
+const TAB_VALUES = ["profile", "filters", "companies", "notifications", "danger"] as const;
 type TabValue = typeof TAB_VALUES[number];
 
 interface SettingsProps {
   initialProfile: string;
   initialHardFilters: HardFilters;
   initialCompanies: WatchedCompany[];
+  initialNotifications: NotificationPrefs;
   jobsTotal: number;
   lastScrapedLabel: string | null;
 }
 
-export default function Settings({ initialProfile, initialHardFilters, initialCompanies, jobsTotal, lastScrapedLabel }: SettingsProps) {
+export default function Settings({ initialProfile, initialHardFilters, initialCompanies, initialNotifications, jobsTotal, lastScrapedLabel }: SettingsProps) {
   const sp = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
@@ -48,6 +51,7 @@ export default function Settings({ initialProfile, initialHardFilters, initialCo
         <TabButton label="Profile" value="profile" active={tab === "profile"} onClick={setTab} />
         <TabButton label="Hard Filters" value="filters" active={tab === "filters"} onClick={setTab} />
         <TabButton label="Watched Companies" value="companies" active={tab === "companies"} onClick={setTab} />
+        <TabButton label="Notifications" value="notifications" active={tab === "notifications"} onClick={setTab} />
         <TabButton label="● Danger Zone" value="danger" active={tab === "danger"} onClick={setTab} danger />
       </div>
       <div className="flex-1 overflow-y-auto">
@@ -59,6 +63,9 @@ export default function Settings({ initialProfile, initialHardFilters, initialCo
         )}
         {tab === "companies" && (
           <CompaniesTab initialCompanies={initialCompanies} initialLastScraped={lastScrapedLabel} />
+        )}
+        {tab === "notifications" && (
+          <NotificationsTab initialNotifications={initialNotifications} />
         )}
         {tab === "danger" && <DangerTab jobsTotal={jobsTotal} />}
       </div>

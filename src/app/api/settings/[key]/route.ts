@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { settings } from "@/lib/db/schema";
 
-const ALLOWED_KEYS = new Set(["profile", "hard_filters"]);
+const ALLOWED_KEYS = new Set(["profile", "hard_filters", "notifications"]);
 
 /**
  * PUT /api/settings/:key

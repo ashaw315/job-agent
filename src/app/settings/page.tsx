@@ -5,14 +5,16 @@ import Topbar from "@/components/dashboard/Topbar";
 import Settings from "@/components/settings/Settings";
 import { getProfile } from "@/lib/settings/profile";
 import { getHardFilters } from "@/lib/settings/hard-filters";
+import { getNotificationPrefs } from "@/lib/settings/notifications";
 import { relativeDate } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
 
 export default async function SettingsPage() {
-  const [profile, hardFilters, companies, jobsCountRow, lastScrapeRow] = await Promise.all([
+  const [profile, hardFilters, notifications, companies, jobsCountRow, lastScrapeRow] = await Promise.all([
     getProfile(),
     getHardFilters(),
+    getNotificationPrefs(),
     db
       .select()
       .from(watchedCompanies)
@@ -32,6 +34,7 @@ export default async function SettingsPage() {
         initialProfile={profile}
         initialHardFilters={hardFilters}
         initialCompanies={companies}
+        initialNotifications={notifications}
         jobsTotal={jobsTotal}
         lastScrapedLabel={lastScrapedLabel}
       />

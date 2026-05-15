@@ -6,6 +6,7 @@ import { scoreKeywords } from "@/lib/scoring/keyword-scorer";
 import { scoreWithAI } from "@/lib/scoring/ai-scorer";
 import { getProfile } from "@/lib/settings/profile";
 import { getHardFilters, applyHardFilters, type HardFilters } from "@/lib/settings/hard-filters";
+import { maybeRunDigest } from "@/lib/notifications/digest";
 import type { ScrapedJob, CronRunSummary } from "@/lib/types";
 import { SCORE_THRESHOLD_AI, AI_SCORING_MAX_PER_RUN } from "@/lib/constants";
 
@@ -70,6 +71,15 @@ export async function runScrapePipeline(): Promise<CronRunSummary> {
 
   if (process.env.ANTHROPIC_API_KEY) {
     aiScoresRun = await runAIScoring(profile);
+  }
+
+  // Email digest — fire-and-forget at the end of the pipeline. Failures are
+  // logged but do not fail the scrape (the user can still see jobs in the dashboard).
+  try {
+    const digestStatus = await maybeRunDigest();
+    console.log(digestStatus);
+  } catch (err) {
+    console.error("Digest send failed:", err instanceof Error ? err.message : err);
   }
 
   const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
