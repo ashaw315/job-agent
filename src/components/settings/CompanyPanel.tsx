@@ -14,6 +14,8 @@ const CUSTOM_SCRAPER_OPTIONS = [
   { value: "builtinnyc", label: "BuiltInNYC" },
   { value: "weworkremotely", label: "We Work Remotely" },
   { value: "whitney", label: "Whitney" },
+  { value: "awwwards", label: "Awwwards" },
+  { value: "creativeapplications", label: "CreativeApplications" },
 ] as const;
 
 interface FormState {

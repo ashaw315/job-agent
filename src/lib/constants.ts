@@ -284,4 +284,20 @@ export const INITIAL_COMPANIES: CompanySeed[] = [
     custom_scraper: "whitney",
     priority: 1,
   },
+  {
+    name: "Awwwards",
+    ats: "custom",
+    board_url: "https://www.awwwards.com/jobs/",
+    category: "aggregator",
+    custom_scraper: "awwwards",
+    priority: 1,
+  },
+  {
+    name: "CreativeApplications",
+    ats: "custom",
+    board_url: "https://www.creativeapplications.net/jobs/",
+    category: "aggregator",
+    custom_scraper: "creativeapplications",
+    priority: 1,
+  },
 ];
