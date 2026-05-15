@@ -99,6 +99,14 @@ export const scrapeLog = pgTable(
   ]
 );
 
+// ─── Settings ─────────────────────────────────────────────────────
+
+export const settings = pgTable("settings", {
+  key: text("key").primaryKey(),
+  value: text("value").notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
 // ─── Inferred Types ───────────────────────────────────────────────
 
 export type Job = typeof jobs.$inferSelect;
@@ -106,3 +114,5 @@ export type NewJob = typeof jobs.$inferInsert;
 export type WatchedCompany = typeof watchedCompanies.$inferSelect;
 export type NewWatchedCompany = typeof watchedCompanies.$inferInsert;
 export type ScrapeLogEntry = typeof scrapeLog.$inferSelect;
+export type Setting = typeof settings.$inferSelect;
+export type NewSetting = typeof settings.$inferInsert;
