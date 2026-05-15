@@ -7,6 +7,7 @@ import type { HardFilters } from "@/lib/settings/hard-filters";
 import ProfileTab from "./ProfileTab";
 import FiltersTab from "./FiltersTab";
 import CompaniesTab from "./CompaniesTab";
+import DangerTab from "./DangerTab";
 
 const TAB_VALUES = ["profile", "filters", "companies", "danger"] as const;
 type TabValue = typeof TAB_VALUES[number];
@@ -59,9 +60,7 @@ export default function Settings({ initialProfile, initialHardFilters, initialCo
         {tab === "companies" && (
           <CompaniesTab initialCompanies={initialCompanies} initialLastScraped={lastScrapedLabel} />
         )}
-        {tab === "danger" && (
-          <Placeholder name={`Danger Zone (${jobsTotal} jobs)`} />
-        )}
+        {tab === "danger" && <DangerTab jobsTotal={jobsTotal} />}
       </div>
     </>
   );
@@ -80,14 +79,5 @@ function TabButton({ label, value, active, onClick, danger }: { label: string; v
     >
       {label}
     </button>
-  );
-}
-
-function Placeholder({ name }: { name: string }) {
-  return (
-    <div className="p-6 text-[color:var(--text-sec)] text-[12px]">
-      <p>Tab: {name}</p>
-      <p className="mt-2 text-[color:var(--text-tert)]">Implementation comes in the next tasks.</p>
-    </div>
   );
 }
