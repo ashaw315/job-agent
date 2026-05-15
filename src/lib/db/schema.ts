@@ -59,6 +59,7 @@ export const jobs = pgTable(
     index("idx_jobs_ai_score").on(table.aiScore),
     index("idx_jobs_date_scraped").on(table.dateScraped),
     index("idx_jobs_company").on(table.companyName),
+    index("idx_jobs_source_url").on(table.sourceUrl),
   ]
 );
 
