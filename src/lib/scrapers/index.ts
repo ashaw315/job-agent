@@ -3,6 +3,7 @@ import { ScrapeResult } from "../types";
 import { scrapeGreenhouse } from "./greenhouse";
 import { scrapeLever } from "./lever";
 import { scrapeAshby } from "./ashby";
+import { getCustomScraper } from "./custom";
 
 /**
  * Route to the correct scraper based on ATS type.
@@ -25,8 +26,13 @@ export async function scrapeCompany(
       return scrapeLever(company);
     case "ashby":
       return scrapeAshby(company);
-    case "custom":
-      return { ...base, error: `Custom scraper not implemented for ${company.name}` };
+    case "custom": {
+      const fn = getCustomScraper(company.customScraper);
+      if (!fn) {
+        return { ...base, error: `Unknown custom_scraper '${company.customScraper ?? "(null)"}' for ${company.name}` };
+      }
+      return fn(company);
+    }
     default:
       return { ...base, error: `Unknown ATS: ${company.ats}` };
   }
