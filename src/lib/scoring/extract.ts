@@ -1,6 +1,7 @@
 import * as cheerio from "cheerio";
-import type { ScrapedJob } from "@/lib/types";
 import { stripHtml } from "@/lib/utils";
+import type { ScrapedJob } from "@/lib/types";
+import { AI_SCORING_MODEL } from "@/lib/constants";
 
 // CheerioAPI is re-exported as a type-only export from cheerio's root, which
 // TypeScript 5.x (bundler resolution) does not always see.  Deriving it via
@@ -220,6 +221,103 @@ function pickSalary(v: unknown): string | null {
   return null;
 }
 
-async function tryExtractClaude(_$: CheerioAPI, _html: string): Promise<ExtractResult> {
-  return { error: "extraction_failed" };
+async function tryExtractClaude(
+  $: CheerioAPI,
+  html: string
+): Promise<ExtractResult> {
+  const apiKey = process.env.ANTHROPIC_API_KEY;
+  if (!apiKey) {
+    console.warn("extract: ANTHROPIC_API_KEY not set, cannot fall back to Claude");
+    return { error: "extraction_failed" };
+  }
+
+  // Pre-clean: drop obvious noise tags so the truncate-at-20KB leaves real content
+  $("script, style, nav, footer, header").remove();
+  let cleaned = $.root().html() ?? "";
+  if (cleaned.length > 20000) cleaned = cleaned.slice(0, 20000);
+
+  // Fall back to raw HTML if cheerio rendering produced nothing meaningful
+  if (cleaned.length < 200) {
+    cleaned = html.slice(0, 20000);
+  }
+
+  const prompt = `You are extracting job posting details from a webpage's HTML.
+
+Extract these fields as JSON. If a field is genuinely not present, set it to null.
+
+Output JSON only, no markdown fences:
+{"title": <string>, "company_name": <string>, "location": <string|null>, "salary_text": <string|null>, "description": <string>, "remote_policy": <"onsite"|"hybrid"|"remote"|null>}
+
+The description should be the full job description text (not HTML), 200+ characters where possible. If the page doesn't look like a job posting at all, return {"title": null, "company_name": null, "location": null, "salary_text": null, "description": null, "remote_policy": null}.
+
+HTML (may be truncated):
+${cleaned}`;
+
+  let res: Response;
+  try {
+    res = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": apiKey,
+        "anthropic-version": "2023-06-01",
+      },
+      body: JSON.stringify({
+        model: AI_SCORING_MODEL,
+        max_tokens: 2000,
+        messages: [{ role: "user", content: prompt }],
+      }),
+      signal: AbortSignal.timeout(20000),
+    });
+  } catch (err) {
+    console.error("extract Claude: fetch failed:", err instanceof Error ? err.message : err);
+    return { error: "extraction_failed" };
+  }
+
+  if (!res.ok) {
+    const body = await res.text();
+    console.error(`extract Claude: HTTP ${res.status}: ${body.slice(0, 200)}`);
+    return { error: "extraction_failed" };
+  }
+
+  const data = await res.json();
+  const text: string = data?.content?.[0]?.text ?? "";
+  const clean = text.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
+
+  let parsed: {
+    title: string | null;
+    company_name: string | null;
+    location: string | null;
+    salary_text: string | null;
+    description: string | null;
+    remote_policy: string | null;
+  };
+  try {
+    parsed = JSON.parse(clean);
+  } catch (err) {
+    console.error("extract Claude: JSON parse failed:", err);
+    return { error: "extraction_failed" };
+  }
+
+  // "Not a job posting" — Claude returned all nulls
+  if (!parsed.title && !parsed.description) {
+    return { error: "not_a_job" };
+  }
+
+  // Require at least a title — without it scoring is meaningless
+  if (!parsed.title) {
+    return { error: "extraction_failed" };
+  }
+
+  return {
+    job: {
+      title: parsed.title,
+      company_name: parsed.company_name ?? "Unknown",
+      company_display_name: parsed.company_name ?? "Unknown",
+      description: parsed.description ?? "",
+      location: parsed.location ?? "",
+      salary_text: parsed.salary_text,
+      date_posted: null,
+    },
+  };
 }
