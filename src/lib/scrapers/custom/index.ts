@@ -5,6 +5,8 @@ import { scrapeWeWorkRemotely } from "./weworkremotely";
 import { scrapeWhitney } from "./whitney";
 import { scrapeAwwwards } from "./awwwards";
 import { scrapeCreativeApplications } from "./creativeapplications";
+import { scrapeDribbble } from "./dribbble";
+import { scrapeMediabistro } from "./mediabistro";
 
 type CustomScraperFn = (c: WatchedCompany) => Promise<ScrapeResult>;
 
@@ -23,6 +25,8 @@ export const CUSTOM_SCRAPERS: Record<string, CustomScraperFn> = {
   whitney: scrapeWhitney,
   awwwards: scrapeAwwwards,
   creativeapplications: scrapeCreativeApplications,
+  dribbble: scrapeDribbble,
+  mediabistro: scrapeMediabistro,
 };
 
 export function getCustomScraper(slug: string | null): CustomScraperFn | null {

@@ -16,6 +16,8 @@ const CUSTOM_SCRAPER_OPTIONS = [
   { value: "whitney", label: "Whitney" },
   { value: "awwwards", label: "Awwwards" },
   { value: "creativeapplications", label: "CreativeApplications" },
+  { value: "dribbble", label: "Dribbble" },
+  { value: "mediabistro", label: "Mediabistro" },
 ] as const;
 
 interface FormState {

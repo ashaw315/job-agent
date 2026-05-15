@@ -300,4 +300,20 @@ export const INITIAL_COMPANIES: CompanySeed[] = [
     custom_scraper: "creativeapplications",
     priority: 1,
   },
+  {
+    name: "Dribbble",
+    ats: "custom",
+    board_url: "https://dribbble.com/jobs",
+    category: "aggregator",
+    custom_scraper: "dribbble",
+    priority: 1,
+  },
+  {
+    name: "Mediabistro",
+    ats: "custom",
+    board_url: "https://www.mediabistro.com/jobs?location=New+York",
+    category: "aggregator",
+    custom_scraper: "mediabistro",
+    priority: 2,
+  },
 ];
