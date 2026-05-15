@@ -80,3 +80,44 @@ export function parseSalary(text: string | null): {
   if (numbers.length === 1) return { min: numbers[0], max: numbers[0] };
   return { min: Math.min(...numbers), max: Math.max(...numbers) };
 }
+
+/**
+ * Normalize a URL for dedup and storage:
+ * - Trim whitespace
+ * - Validate via URL constructor
+ * - Lowercase the host (case-insensitive)
+ * - Strip query string and fragment
+ * - Strip a single trailing slash from the path (unless the path is "/")
+ *
+ * Returns null for malformed input.
+ *
+ * Examples:
+ *   "  https://Boards.Greenhouse.io/linear/jobs/123?utm=x/  "
+ *     → "https://boards.greenhouse.io/linear/jobs/123"
+ *   "https://jobs.lever.co/doji/abc-123/"
+ *     → "https://jobs.lever.co/doji/abc-123"
+ *   "not-a-url" → null
+ */
+export function normalizeUrl(input: string): string | null {
+  const trimmed = input.trim();
+  if (!trimmed) return null;
+  let parsed: URL;
+  try {
+    parsed = new URL(trimmed);
+  } catch {
+    return null;
+  }
+  // Only http/https
+  if (parsed.protocol !== "http:" && parsed.protocol !== "https:") return null;
+
+  parsed.hostname = parsed.hostname.toLowerCase();
+  parsed.search = "";
+  parsed.hash = "";
+
+  // Strip a single trailing slash unless the path is just "/"
+  if (parsed.pathname.length > 1 && parsed.pathname.endsWith("/")) {
+    parsed.pathname = parsed.pathname.slice(0, -1);
+  }
+
+  return parsed.toString();
+}
