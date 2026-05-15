@@ -5,6 +5,7 @@ import { useEffect } from "react";
 import type { WatchedCompany } from "@/lib/db/schema";
 import type { HardFilters } from "@/lib/settings/hard-filters";
 import ProfileTab from "./ProfileTab";
+import FiltersTab from "./FiltersTab";
 
 const TAB_VALUES = ["profile", "filters", "companies", "danger"] as const;
 type TabValue = typeof TAB_VALUES[number];
@@ -52,7 +53,7 @@ export default function Settings({ initialProfile, initialHardFilters, initialCo
           <ProfileTab initialProfile={initialProfile} jobsTotal={jobsTotal} />
         )}
         {tab === "filters" && (
-          <Placeholder name={`Hard Filters (${JSON.stringify(initialHardFilters)})`} />
+          <FiltersTab initialHardFilters={initialHardFilters} />
         )}
         {tab === "companies" && (
           <Placeholder name={`Companies (${initialCompanies.length} loaded, last scraped ${lastScrapedLabel ?? "never"})`} />
