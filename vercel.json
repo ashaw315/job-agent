@@ -2,6 +2,9 @@
   "functions": {
     "src/app/api/cron/scrape/route.ts": {
       "maxDuration": 60
+    },
+    "src/app/api/scrape/route.ts": {
+      "maxDuration": 60
     }
   }
 }
