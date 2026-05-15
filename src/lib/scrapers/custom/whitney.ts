@@ -1,4 +1,4 @@
-import type { ScrapedJob, ScrapeResult } from "@/lib/types";
+import type { ScrapeResult } from "@/lib/types";
 import type { WatchedCompany } from "@/lib/db/schema";
 import { fetchAndParse, assertLandmark, ScraperError } from "./util";
 
