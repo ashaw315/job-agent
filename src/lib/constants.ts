@@ -1,7 +1,7 @@
 type ATS = "greenhouse" | "lever" | "ashby" | "custom";
 type CompanyCategory =
   | "art_world" | "design_forward" | "ai" | "studio"
-  | "brand" | "tech" | "startup" | "museum" | "media";
+  | "brand" | "tech" | "startup" | "museum" | "media" | "aggregator";
 
 // ─── Scoring Weights ──────────────────────────────────────────────
 
@@ -130,6 +130,7 @@ export interface CompanySeed {
   category: CompanyCategory;
   priority?: 1 | 2 | 3;
   is_active?: boolean;
+  custom_scraper?: string;
 }
 
 export const INITIAL_COMPANIES: CompanySeed[] = [
@@ -256,5 +257,31 @@ export const INITIAL_COMPANIES: CompanySeed[] = [
     board_url: "https://jobs.lever.co/doji",
     category: "startup",
     is_active: false, // company appears dead / not hiring
+  },
+
+  // Custom: aggregators and museums (Phase 4 Wave A)
+  {
+    name: "BuiltInNYC",
+    ats: "custom",
+    board_url: "https://www.builtinnyc.com/jobs",
+    category: "aggregator",
+    custom_scraper: "builtinnyc",
+    priority: 2,
+  },
+  {
+    name: "We Work Remotely",
+    ats: "custom",
+    board_url: "https://weworkremotely.com/categories/remote-programming-jobs",
+    category: "aggregator",
+    custom_scraper: "weworkremotely",
+    priority: 2,
+  },
+  {
+    name: "Whitney",
+    ats: "custom",
+    board_url: "https://whitney.org/about/job-postings",
+    category: "museum",
+    custom_scraper: "whitney",
+    priority: 1,
   },
 ];

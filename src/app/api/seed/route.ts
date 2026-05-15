@@ -21,6 +21,7 @@ export async function POST(request: Request) {
       name: c.name,
       ats: c.ats,
       boardUrl: c.board_url,
+      customScraper: c.custom_scraper ?? null,
       category: c.category,
       priority: c.priority || 2,
       isActive: c.is_active ?? true,
