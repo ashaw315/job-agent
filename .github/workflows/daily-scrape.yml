@@ -48,7 +48,13 @@ jobs:
               pass
           "
 
-      - name: Trigger score endpoint
+      # Score is best-effort: each /api/cron/score processes up to 5 jobs to fit
+      # under Vercel Hobby's 60s function limit. Two consecutive calls cover up
+      # to 10 jobs/day; larger backlogs catch up over subsequent daily runs.
+      # continue-on-error: a scoring timeout shouldn't fail the whole workflow —
+      # jobs scraped today are still visible in the dashboard with keyword scores.
+      - name: Trigger score endpoint (pass 1)
+        continue-on-error: true
         env:
           SCRAPE_URL: ${{ secrets.SCRAPE_URL }}
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
@@ -56,7 +62,7 @@ jobs:
           # SCRAPE_URL points at /api/cron/scrape — derive the score URL by
           # swapping the path. Both endpoints live on the same Vercel deployment.
           SCORE_URL="${SCRAPE_URL%/api/cron/scrape}/api/cron/score"
-          echo "Triggering AI scoring at $(date -u) — $SCORE_URL"
+          echo "Triggering AI scoring (pass 1) at $(date -u) — $SCORE_URL"
 
           RESPONSE=$(curl -s -w "\n%{http_code}" \
             -H "Authorization: Bearer $CRON_SECRET" \
@@ -69,11 +75,47 @@ jobs:
           echo "Response: $BODY"
 
           if [ "$HTTP_CODE" -ne 200 ]; then
-            echo "::error::Scoring failed with status $HTTP_CODE"
+            echo "::warning::Score pass 1 failed with status $HTTP_CODE — pass 2 will still try"
             exit 1
           fi
 
           # Parse and display summary
+          echo "$BODY" | python3 -c "
+          import json, sys
+          try:
+              data = json.load(sys.stdin)
+              print(f\"AI scored: {data.get('ai_scores_run', 0)} / {data.get('candidates_examined', 0)} candidates\")
+              errors = data.get('errors', [])
+              if errors:
+                  print(f\"Errors ({len(errors)}): {'; '.join(errors[:5])}\")
+          except:
+              pass
+          "
+
+      - name: Trigger score endpoint (pass 2)
+        continue-on-error: true
+        env:
+          SCRAPE_URL: ${{ secrets.SCRAPE_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          SCORE_URL="${SCRAPE_URL%/api/cron/scrape}/api/cron/score"
+          echo "Triggering AI scoring (pass 2) at $(date -u) — $SCORE_URL"
+
+          RESPONSE=$(curl -s -w "\n%{http_code}" \
+            -H "Authorization: Bearer $CRON_SECRET" \
+            "$SCORE_URL")
+
+          HTTP_CODE=$(echo "$RESPONSE" | tail -1)
+          BODY=$(echo "$RESPONSE" | sed '$d')
+
+          echo "Status: $HTTP_CODE"
+          echo "Response: $BODY"
+
+          if [ "$HTTP_CODE" -ne 200 ]; then
+            echo "::warning::Score pass 2 failed with status $HTTP_CODE"
+            exit 1
+          fi
+
           echo "$BODY" | python3 -c "
           import json, sys
           try:

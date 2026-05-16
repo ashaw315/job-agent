@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { runScoringPass } from "@/lib/pipeline/scrape";
 
-const PER_CALL_LIMIT = 10;
+const PER_CALL_LIMIT = 5;
 
 /**
  * GET /api/cron/score
@@ -9,9 +9,10 @@ const PER_CALL_LIMIT = 10;
  * Daily AI-scoring endpoint, called by GitHub Actions immediately after
  * /api/cron/scrape. Bearer-gated for production safety.
  *
- * Scores up to 10 unscored jobs to fit under Vercel Hobby's 60s function limit.
- * If more than 10 are eligible per day, multiple cron runs catch up over days —
- * acceptable given that the daily inflow is typically <30 candidate jobs.
+ * Scores up to 5 unscored jobs to fit under Vercel Hobby's 60s function limit
+ * (Claude calls take 3–8s each; 5 × 8s + sleeps ≈ 45s with headroom). The
+ * workflow calls this endpoint twice per day to process up to 10 jobs total;
+ * larger backlogs catch up over consecutive days.
  */
 export async function GET(request: Request) {
   const authHeader = request.headers.get("authorization");
