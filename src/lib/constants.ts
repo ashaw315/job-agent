@@ -85,6 +85,16 @@ export const NEGATIVE_SIGNALS = {
       "adjunct",
       "professor",
       "intern",
+      // Hard disqualifiers — sales-adjacent and hardware/silicon roles
+      "account executive",
+      "account manager",
+      "sales representative",
+      "silicon",
+      "photonics",
+      "semiconductor",
+      "asic",
+      "mechanical engineer",
+      "hardware engineer",
     ],
   },
   description_negative: {
@@ -97,6 +107,10 @@ export const NEGATIVE_SIGNALS = {
       "phd required",
       "contract",
       "1099",
+      // Hard disqualifiers — freelance-marketplace platform roles
+      "freelance marketplace",
+      "freelance matching",
+      "freelance platform",
     ],
   },
   experience_mismatch: {

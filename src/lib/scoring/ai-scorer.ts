@@ -40,6 +40,17 @@ Score LOWER (-15 to -20) for roles where:
 - There's no creative, curatorial, or conceptual dimension
 - The job description reads as a pure engineering checklist
 
+CRITICAL: If you find yourself scoring a role primarily based on tech stack match (React, TypeScript, Node.js) without considering whether the ROLE CONTEXT values creative/institutional thinking, you are applying this filter incorrectly. A "Software Engineer" at a museum with creative responsibilities should score higher than a "Design Engineer" at a hardware company. Context matters more than title.
+
+COMPANY CONTEXT BONUSES:
+Apply a +15 point bonus when the company is in art, museums, cultural institutions, auction houses, or art-adjacent tech (Sotheby's, Christie's, 1stDibs, Artsy, Whitney, MoMA, any museum). The candidate has nearly a decade of hands-on gallery and institutional experience — this is genuine domain expertise, not adjacent interest.
+
+Apply a +10 point bonus for media/editorial companies (New York Times, Vox Media, Condé Nast, The Atlantic). The candidate has been to final rounds at NYT twice — he understands this world.
+
+Apply a +10 point bonus for creative studios and agencies that build interactive experiences (Deeplocal, Local Projects, Bluecadet, etc.). The candidate's fabrication skills + code + art background is the exact profile these studios hire for.
+
+These bonuses stack with the CORE FILTER adjustments. A Sotheby's Exhibition Designer should score 75-85, not 45.
+
 IMPORTANT SCORING GUIDANCE:
 - Be skeptical, not generous. A score of 70+ should mean "Adam would likely get an interview." A score of 50-69 means "worth applying but it's a stretch." Below 50 means "don't bother."
 - If the role requires specific professional experience Adam doesn't have (e.g., "5+ years leading brand campaigns"), score it below 40 regardless of other signals.
