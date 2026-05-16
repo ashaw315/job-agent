@@ -11,24 +11,27 @@ import type { ScrapedJob, CronRunSummary } from "@/lib/types";
 import { SCORE_THRESHOLD_AI, AI_SCORING_MAX_PER_RUN } from "@/lib/constants";
 
 /**
- * Run the full scrape pipeline:
- * 1. Fetch active watched companies
- * 2. Scrape each board
- * 3. Dedupe + keyword-score + hard-filter + insert
- * 4. AI-score top unscored candidates (using DB profile or default)
- * 5. Update company statuses, log everything
+ * Phase 1: scrape + keyword-score only.
+ *
+ * Run all watched-company scrapers, dedupe, keyword-score, apply hard filters,
+ * insert into jobs. Returns a summary with ai_scores_run=0 since this phase
+ * does not call Claude. AI scoring happens in runScoringPass() (separate route).
+ *
+ * This split exists because Vercel Hobby's 60s function limit can't fit
+ * scraping 23+ sources AND running AI scoring on 30 jobs (500ms sleep each = 15s
+ * minimum, plus per-call API time). The two phases run sequentially via GitHub Actions.
+ *
+ * Typical runtime: 30-40s for ~23 sources.
  */
 export async function runScrapePipeline(): Promise<CronRunSummary> {
   const startTime = Date.now();
   const errors: string[] = [];
   let totalJobsFound = 0;
   let totalNewJobs = 0;
-  let aiScoresRun = 0;
 
-  const [companies, hardFilters, profile] = await Promise.all([
+  const [companies, hardFilters] = await Promise.all([
     db.select().from(watchedCompanies).where(eq(watchedCompanies.isActive, true)),
     getHardFilters(),
-    getProfile(),
   ]);
 
   if (companies.length === 0) {
@@ -69,12 +72,92 @@ export async function runScrapePipeline(): Promise<CronRunSummary> {
     });
   }
 
-  if (process.env.ANTHROPIC_API_KEY) {
-    aiScoresRun = await runAIScoring(profile);
+  const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+  console.log(
+    `Scrape complete in ${elapsed}s: ${totalNewJobs} new / ${totalJobsFound} found`
+  );
+
+  return {
+    run_date: new Date().toISOString(),
+    total_companies_scraped: companies.length,
+    total_jobs_found: totalJobsFound,
+    total_new_jobs: totalNewJobs,
+    errors,
+    ai_scores_run: 0,
+  };
+}
+
+export interface ScoringRunSummary {
+  run_date: string;
+  ai_scores_run: number;
+  candidates_examined: number;
+  errors: string[];
+}
+
+/**
+ * Phase 2: AI scoring only.
+ *
+ * Picks up unscored jobs above the keyword threshold and AI-scores up to `limit`
+ * of them (default {@link AI_SCORING_MAX_PER_RUN} = 30; route handlers should pass
+ * a smaller cap to fit under Vercel Hobby's 60s function limit).
+ *
+ * At ~500ms sleep between API calls plus the call itself (~1-2s), 10 jobs takes
+ * roughly 20-30s — comfortably under 60s. The cron-job route uses limit=10.
+ *
+ * Fires the email digest at the very end so the digest reflects today's AI scores.
+ * Digest failures are logged but do not fail the scoring run.
+ */
+export async function runScoringPass(limit: number = AI_SCORING_MAX_PER_RUN): Promise<ScoringRunSummary> {
+  const startTime = Date.now();
+  const errors: string[] = [];
+
+  if (!process.env.ANTHROPIC_API_KEY) {
+    return {
+      run_date: new Date().toISOString(),
+      ai_scores_run: 0,
+      candidates_examined: 0,
+      errors: ["ANTHROPIC_API_KEY not set — skipping AI scoring"],
+    };
   }
 
-  // Email digest — fire-and-forget at the end of the pipeline. Failures are
-  // logged but do not fail the scrape (the user can still see jobs in the dashboard).
+  const profile = await getProfile();
+  const candidates = await db
+    .select()
+    .from(jobs)
+    .where(
+      and(
+        gte(jobs.keywordScore, SCORE_THRESHOLD_AI),
+        isNull(jobs.aiScoredAt),
+        eq(jobs.isActive, true)
+      )
+    )
+    .orderBy(desc(jobs.keywordScore))
+    .limit(limit);
+
+  let scored = 0;
+  for (const job of candidates) {
+    const result = await scoreWithAI(job, profile);
+
+    const updates: Record<string, unknown> = { aiScoredAt: new Date() };
+
+    if (result) {
+      updates.aiScore = result.score;
+      updates.aiReasoning = result.reasoning;
+      updates.aiGreenFlags = result.green_flags;
+      updates.aiRedFlags = result.red_flags;
+      updates.tier = result.tier;
+      updates.roleCategory = result.role_category;
+      scored++;
+    } else {
+      errors.push(`scoreWithAI returned null for ${job.title} @ ${job.companyName}`);
+    }
+
+    await db.update(jobs).set(updates).where(eq(jobs.id, job.id));
+    await new Promise((r) => setTimeout(r, 500));
+  }
+
+  // Email digest — fire-and-forget at the end of the scoring pass. Failures are
+  // logged but do not fail the run (the user can still see scored jobs in the dashboard).
   try {
     const digestStatus = await maybeRunDigest();
     console.log(digestStatus);
@@ -84,16 +167,14 @@ export async function runScrapePipeline(): Promise<CronRunSummary> {
 
   const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
   console.log(
-    `Pipeline complete in ${elapsed}s: ${totalNewJobs} new / ${totalJobsFound} found, ${aiScoresRun} AI scored`
+    `Scoring complete in ${elapsed}s: ${scored}/${candidates.length} candidates AI-scored`
   );
 
   return {
     run_date: new Date().toISOString(),
-    total_companies_scraped: companies.length,
-    total_jobs_found: totalJobsFound,
-    total_new_jobs: totalNewJobs,
+    ai_scores_run: scored,
+    candidates_examined: candidates.length,
     errors,
-    ai_scores_run: aiScoresRun,
   };
 }
 
@@ -143,43 +224,4 @@ async function dedupeAndInsert(scrapedJobs: ScrapedJob[], filters: HardFilters):
   }
 
   return newCount;
-}
-
-async function runAIScoring(profile: string): Promise<number> {
-  const candidates = await db
-    .select()
-    .from(jobs)
-    .where(
-      and(
-        gte(jobs.keywordScore, SCORE_THRESHOLD_AI),
-        isNull(jobs.aiScoredAt),
-        eq(jobs.isActive, true)
-      )
-    )
-    .orderBy(desc(jobs.keywordScore))
-    .limit(AI_SCORING_MAX_PER_RUN);
-
-  if (candidates.length === 0) return 0;
-
-  let scored = 0;
-  for (const job of candidates) {
-    const result = await scoreWithAI(job, profile);
-
-    const updates: Record<string, unknown> = { aiScoredAt: new Date() };
-
-    if (result) {
-      updates.aiScore = result.score;
-      updates.aiReasoning = result.reasoning;
-      updates.aiGreenFlags = result.green_flags;
-      updates.aiRedFlags = result.red_flags;
-      updates.tier = result.tier;
-      updates.roleCategory = result.role_category;
-      scored++;
-    }
-
-    await db.update(jobs).set(updates).where(eq(jobs.id, job.id));
-    await new Promise((r) => setTimeout(r, 500));
-  }
-
-  return scored;
 }

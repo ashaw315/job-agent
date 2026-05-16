@@ -10,7 +10,7 @@ on:
 jobs:
   scrape:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 10
     steps:
       - name: Trigger scrape endpoint
         env:
@@ -41,7 +41,44 @@ jobs:
               data = json.load(sys.stdin)
               print(f\"New jobs: {data.get('total_new_jobs', 0)}\")
               print(f\"Total found: {data.get('total_jobs_found', 0)}\")
-              print(f\"AI scored: {data.get('ai_scores_run', 0)}\")
+              errors = data.get('errors', [])
+              if errors:
+                  print(f\"Errors ({len(errors)}): {'; '.join(errors[:5])}\")
+          except:
+              pass
+          "
+
+      - name: Trigger score endpoint
+        env:
+          SCRAPE_URL: ${{ secrets.SCRAPE_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          # SCRAPE_URL points at /api/cron/scrape — derive the score URL by
+          # swapping the path. Both endpoints live on the same Vercel deployment.
+          SCORE_URL="${SCRAPE_URL%/api/cron/scrape}/api/cron/score"
+          echo "Triggering AI scoring at $(date -u) — $SCORE_URL"
+
+          RESPONSE=$(curl -s -w "\n%{http_code}" \
+            -H "Authorization: Bearer $CRON_SECRET" \
+            "$SCORE_URL")
+
+          HTTP_CODE=$(echo "$RESPONSE" | tail -1)
+          BODY=$(echo "$RESPONSE" | sed '$d')
+
+          echo "Status: $HTTP_CODE"
+          echo "Response: $BODY"
+
+          if [ "$HTTP_CODE" -ne 200 ]; then
+            echo "::error::Scoring failed with status $HTTP_CODE"
+            exit 1
+          fi
+
+          # Parse and display summary
+          echo "$BODY" | python3 -c "
+          import json, sys
+          try:
+              data = json.load(sys.stdin)
+              print(f\"AI scored: {data.get('ai_scores_run', 0)} / {data.get('candidates_examined', 0)} candidates\")
               errors = data.get('errors', [])
               if errors:
                   print(f\"Errors ({len(errors)}): {'; '.join(errors[:5])}\")
