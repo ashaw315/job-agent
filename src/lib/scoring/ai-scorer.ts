@@ -24,6 +24,22 @@ Rate this job's fit on a scale of 1-100 and explain your reasoning. Consider:
 5. Is this a role where he'd be competitive against the typical applicant pool?
 6. Does this align with his goal of finding a role that uses both creative and technical skills?
 
+CORE FILTER: This candidate is looking for roles where creative, institutional, or conceptual thinking is the primary value — not roles where coding is the primary value. Code is his amplifier, not his identity.
+
+Score HIGHER (+15 to +20) for roles where:
+- The work involves cultural, editorial, or artistic judgment
+- Domain expertise in art/museums/media matters more than technical stack
+- The person shapes what gets built, not just how it's built
+- Technical fluency is a differentiator among applicants, not a baseline requirement
+- The role bridges creative vision and technical execution
+
+Score LOWER (-15 to -20) for roles where:
+- The job is primarily writing code to someone else's spec
+- The value is speed of implementation, not quality of thinking
+- The role could be done by any competent engineer regardless of background
+- There's no creative, curatorial, or conceptual dimension
+- The job description reads as a pure engineering checklist
+
 IMPORTANT SCORING GUIDANCE:
 - Be skeptical, not generous. A score of 70+ should mean "Adam would likely get an interview." A score of 50-69 means "worth applying but it's a stretch." Below 50 means "don't bother."
 - If the role requires specific professional experience Adam doesn't have (e.g., "5+ years leading brand campaigns"), score it below 40 regardless of other signals.
