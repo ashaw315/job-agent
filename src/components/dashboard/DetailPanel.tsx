@@ -22,6 +22,41 @@ export default function DetailPanel({ job, onClose, onUpdateStatus, onUpdateNote
   const taRef = notesTextareaRef ?? internalNotesRef;
   const [showDescription, setShowDescription] = useState(false);
 
+  const [draft, setDraft] = useState("");
+  const [draftState, setDraftState] = useState<"idle" | "loading" | "ready" | "failed">("idle");
+  const [copyState, setCopyState] = useState<"idle" | "copied">("idle");
+
+  const handleDraftOutreach = async () => {
+    setDraftState("loading");
+    try {
+      const res = await fetch("/api/jobs/draft-outreach", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: job.id }),
+      });
+      const data = await res.json();
+      if (data?.success && typeof data.draft === "string") {
+        setDraft(data.draft);
+        setDraftState("ready");
+      } else {
+        setDraftState("failed");
+      }
+    } catch {
+      setDraftState("failed");
+    }
+  };
+
+  const handleCopyDraft = async () => {
+    try {
+      await navigator.clipboard.writeText(draft);
+      setCopyState("copied");
+      setTimeout(() => setCopyState("idle"), 1500);
+    } catch {
+      // Clipboard write can be blocked (insecure context, permissions). Surface nothing —
+      // the user can still select-all in the textarea.
+    }
+  };
+
   // The parent passes key={job.id} on <DetailPanel>, so this component fully
   // remounts whenever the selected job changes (j/k flipping). useState initial
   // values therefore handle the per-job reset — no effect needed here.
@@ -176,6 +211,47 @@ export default function DetailPanel({ job, onClose, onUpdateStatus, onUpdateNote
               {saveState === "idle" && " "}
             </div>
           </section>
+
+          {job.aiScore !== null && (
+            <section className="mt-4">
+              <div className="mb-1 flex items-center justify-between">
+                <div className="text-[9px] uppercase tracking-wider text-[color:var(--text-sec)]">Outreach</div>
+                <button
+                  onClick={handleDraftOutreach}
+                  disabled={draftState === "loading"}
+                  className="rounded border border-[color:var(--border-strong)] px-2 py-1 text-[11px] text-[color:var(--text-pri)] hover:border-[color:var(--accent)] hover:text-[color:var(--accent)] disabled:opacity-50"
+                >
+                  {draftState === "loading"
+                    ? "Drafting…"
+                    : draftState === "ready"
+                    ? "Regenerate"
+                    : "Draft outreach"}
+                </button>
+              </div>
+              {draftState === "failed" && (
+                <div className="mb-1 text-[10px] text-[color:var(--danger)]">Draft failed — try again</div>
+              )}
+              {(draftState === "ready" || draft) && (
+                <>
+                  <textarea
+                    value={draft}
+                    onChange={e => setDraft(e.target.value)}
+                    rows={10}
+                    className="w-full resize-y rounded border border-[color:var(--border)] bg-[color:var(--bg)] p-2 text-[12px] text-[color:var(--text-pri)] focus:border-[color:var(--accent)] focus:outline-none"
+                  />
+                  <div className="mt-1 flex items-center justify-between text-[10px] text-[color:var(--text-sec)]">
+                    <button
+                      onClick={handleCopyDraft}
+                      className="rounded border border-[color:var(--border-strong)] px-2 py-1 text-[color:var(--text-pri)] hover:border-[color:var(--accent)] hover:text-[color:var(--accent)]"
+                    >
+                      {copyState === "copied" ? "Copied" : "Copy to clipboard"}
+                    </button>
+                    <span>{draft.length} chars · edit freely before copying</span>
+                  </div>
+                </>
+              )}
+            </section>
+          )}
         </div>
       </aside>
     </>
