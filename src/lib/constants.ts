@@ -110,9 +110,9 @@ export const NEGATIVE_SIGNALS = {
 } as const;
 
 // Keyword score thresholds
-export const SCORE_THRESHOLD_ARCHIVE = 20;
+export const SCORE_THRESHOLD_ARCHIVE = 35;
 export const SCORE_THRESHOLD_SURFACE = 50;
-export const SCORE_THRESHOLD_AI = 50; // Minimum keyword score to trigger AI scoring
+export const SCORE_THRESHOLD_AI = 45; // Minimum keyword score to trigger AI scoring
 export const SCORE_THRESHOLD_DIGEST_TOP = 70; // AI score for "top jobs" in digest
 export const SCORE_THRESHOLD_DIGEST_INTERESTING = 50; // AI score for "interesting" in digest
 
