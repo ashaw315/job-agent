@@ -48,6 +48,50 @@ jobs:
               pass
           "
 
+      # Enrich is best-effort: re-fetches aggregator jobs (BuiltInNYC, WWR,
+      # Dribbble, Awwwards, Mediabistro, Whitney, CreativeApplications) whose
+      # description is shorter than 200 chars and replaces the listing snippet
+      # with the full extracted job description. This gives the AI scorer the
+      # same signal as for company-board jobs.
+      # continue-on-error: enrichment failures shouldn't block scoring or fail
+      # the workflow; the un-enriched job still gets scored on the listing snippet.
+      - name: Trigger enrich endpoint
+        continue-on-error: true
+        env:
+          SCRAPE_URL: ${{ secrets.SCRAPE_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          ENRICH_URL="${SCRAPE_URL%/api/cron/scrape}/api/cron/enrich"
+          echo "Triggering description enrichment at $(date -u) — $ENRICH_URL"
+
+          RESPONSE=$(curl -s -w "\n%{http_code}" \
+            -H "Authorization: Bearer $CRON_SECRET" \
+            "$ENRICH_URL")
+
+          HTTP_CODE=$(echo "$RESPONSE" | tail -1)
+          BODY=$(echo "$RESPONSE" | sed '$d')
+
+          echo "Status: $HTTP_CODE"
+          echo "Response: $BODY"
+
+          if [ "$HTTP_CODE" -ne 200 ]; then
+            echo "::warning::Enrich failed with status $HTTP_CODE — score pass will still run"
+            exit 1
+          fi
+
+          # Parse and display summary
+          echo "$BODY" | python3 -c "
+          import json, sys
+          try:
+              data = json.load(sys.stdin)
+              print(f\"Enriched: {data.get('enriched', 0)} / {data.get('candidates_examined', 0)} candidates · skipped: {data.get('skipped', 0)}\")
+              errors = data.get('errors', [])
+              if errors:
+                  print(f\"Errors ({len(errors)}): {'; '.join(errors[:5])}\")
+          except:
+              pass
+          "
+
       # Score is best-effort: each /api/cron/score processes up to 5 jobs to fit
       # under Vercel Hobby's 60s function limit. Two consecutive calls cover up
       # to 10 jobs/day; larger backlogs catch up over subsequent daily runs.

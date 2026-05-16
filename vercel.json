@@ -3,10 +3,16 @@
     "src/app/api/cron/scrape/route.ts": {
       "maxDuration": 60
     },
+    "src/app/api/cron/enrich/route.ts": {
+      "maxDuration": 60
+    },
     "src/app/api/cron/score/route.ts": {
       "maxDuration": 60
     },
     "src/app/api/scrape/route.ts": {
+      "maxDuration": 60
+    },
+    "src/app/api/enrich/route.ts": {
       "maxDuration": 60
     },
     "src/app/api/score/route.ts": {
