@@ -43,6 +43,9 @@ SPECIFIC SCORING TRAPS TO AVOID:
 
 5. Niche skills vs commodity skills. Distinguish between skills that are easy to bridge (a React developer can learn Vue in weeks) and skills that represent deep domain knowledge (agentic systems, compiler design, ML infrastructure). If a role lists niche requirements the candidate hasn't demonstrated, don't assume adjacency. "Built a Kafka messaging system" doesn't bridge to "design agentic tool interfaces." Be specific about which requirements the candidate actually meets vs which are aspirational.
 
+ADDITIONAL SCORING DIMENSION:
+This candidate is also interested in non-engineering roles where coding ability is a competitive advantage even if not explicitly required. Roles like creative producer, creative operations manager, brand marketing manager, or editorial roles at companies where technical fluency differentiates him from other applicants. If the role would benefit from someone who can code (automate workflows, build internal tools, prototype concepts, speak to engineers credibly) even though it doesn't list coding as a requirement, add 10-15 points to the score and note this in green_flags as "coding as competitive edge."
+
 Respond in JSON only, no markdown fences:
 {"score": <number 1-100>, "reasoning": "<2-3 sentences>", "tier": <1|2|3>, "role_category": "<category>", "salary_estimate": "<range if not listed>", "red_flags": "<any concerns>", "green_flags": "<strongest fit signals>"}`;
 
