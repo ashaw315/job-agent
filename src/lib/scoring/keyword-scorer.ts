@@ -25,6 +25,7 @@ interface KeywordScoreResult {
  */
 export function scoreKeywords(job: ScrapedJob): KeywordScoreResult {
   let score = 0;
+  let titleDisqualifierHit = false;
   const titleLower = job.title.toLowerCase();
   const descLower = (job.description || "").toLowerCase();
   const locationLower = (job.location || "").toLowerCase();
@@ -63,6 +64,15 @@ export function scoreKeywords(job: ScrapedJob): KeywordScoreResult {
   }
   score += Math.min(modDescScore, POSITIVE_SIGNALS.description_moderate.cap);
 
+  // ── Positive: institutional / museum vocabulary (capped) ──
+  let instDescScore = 0;
+  for (const term of POSITIVE_SIGNALS.description_institutional.terms) {
+    if (descLower.includes(term)) {
+      instDescScore += POSITIVE_SIGNALS.description_institutional.weight;
+    }
+  }
+  score += Math.min(instDescScore, POSITIVE_SIGNALS.description_institutional.cap);
+
   // ── Positive: location ──
   let remote_policy: RemotePolicy | null = null;
 
@@ -91,9 +101,15 @@ export function scoreKeywords(job: ScrapedJob): KeywordScoreResult {
   }
 
   // ── Negative: title signals ──
+  // A title_negative match is a hard disqualifier, not just a score penalty.
+  // We still apply the weight (so the final score reflects the hit), but the
+  // job is also force-archived regardless of how high positives push the score.
+  // This catches cases like "Sr. Silicon Photonics Design Engineer" where the
+  // +30 from "design engineer" title_exact overpowers the -30 silicon penalty.
   for (const term of NEGATIVE_SIGNALS.title_negative.terms) {
     if (titleLower.includes(term)) {
-      score += NEGATIVE_SIGNALS.title_negative.weight; // negative
+      score += NEGATIVE_SIGNALS.title_negative.weight;
+      titleDisqualifierHit = true;
       break;
     }
   }
@@ -120,6 +136,6 @@ export function scoreKeywords(job: ScrapedJob): KeywordScoreResult {
     remote_policy,
     salary_min: salaryMin,
     salary_max: salaryMax,
-    auto_archive: score < SCORE_THRESHOLD_ARCHIVE,
+    auto_archive: titleDisqualifierHit || score < SCORE_THRESHOLD_ARCHIVE,
   };
 }

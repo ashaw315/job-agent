@@ -2,6 +2,7 @@ import { db } from "@/lib/db";
 import { jobs } from "@/lib/db/schema";
 import { and, eq, inArray, isNotNull, or, isNull, lt, sql } from "drizzle-orm";
 import { extractJobFromUrl } from "@/lib/scoring/extract";
+import { scoreKeywords } from "@/lib/scoring/keyword-scorer";
 
 /**
  * Aggregator scrapers only have listing-page snippets (~150-300 chars) in their
@@ -50,14 +51,17 @@ export async function runEnrichPass(limit: number): Promise<EnrichRunSummary> {
   let enriched = 0;
   let skipped = 0;
 
-  // Candidates: active aggregator jobs with a source_url, where the description
-  // is missing or shorter than SHORT_DESCRIPTION_THRESHOLD chars.
+  // Candidates: aggregator jobs (active OR archived) with a source_url, where
+  // the description is missing or shorter than SHORT_DESCRIPTION_THRESHOLD chars.
+  //
+  // We deliberately include archived rows: archive decisions made on a 50-char
+  // listing snippet are wrong. If enrichment produces a fuller description that
+  // changes the keyword score, we un-archive below.
   const candidates = await db
     .select()
     .from(jobs)
     .where(
       and(
-        eq(jobs.isActive, true),
         inArray(jobs.source, AGGREGATOR_SOURCES as unknown as string[]),
         isNotNull(jobs.sourceUrl),
         or(
@@ -96,9 +100,35 @@ export async function runEnrichPass(limit: number): Promise<EnrichRunSummary> {
       } else {
         const newDesc = result.job.description;
         if (newDesc && newDesc.length > (job.description?.length ?? 0)) {
+          // Re-score with the enriched description. Many aggregator jobs were
+          // archived on a 50-char snippet that had no positive signals; the full
+          // description usually flips that. We un-archive if the new score
+          // clears the archive threshold (and scoreKeywords didn't hit a title
+          // disqualifier, which sets auto_archive=true regardless of score).
+          const rescored = scoreKeywords({
+            external_id: job.externalId ?? "",
+            source: job.source,
+            source_url: job.sourceUrl ?? "",
+            company_name: job.companyName,
+            company_display_name: job.companyDisplayName ?? job.companyName,
+            title: job.title,
+            description: newDesc,
+            location: job.location ?? "",
+            salary_text: job.salaryText,
+            date_posted: null,
+          });
+
           await db
             .update(jobs)
-            .set({ description: newDesc })
+            .set({
+              description: newDesc,
+              keywordScore: rescored.score,
+              salaryMin: rescored.salary_min ?? job.salaryMin,
+              salaryMax: rescored.salary_max ?? job.salaryMax,
+              remotePolicy: rescored.remote_policy ?? job.remotePolicy,
+              isActive: !rescored.auto_archive,
+              status: rescored.auto_archive ? "passed" : (job.isActive ? job.status : "new"),
+            })
             .where(eq(jobs.id, job.id));
           enriched++;
         } else {

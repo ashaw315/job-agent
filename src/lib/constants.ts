@@ -46,10 +46,6 @@ export const POSITIVE_SIGNALS = {
       "typescript",
       "rails",
       "node.js",
-      "museum",
-      "gallery",
-      "exhibition",
-      "cultural",
       "figma",
       "design system",
       "animation",
@@ -59,6 +55,31 @@ export const POSITIVE_SIGNALS = {
       "three.js",
       "webgl",
       "p5.js",
+    ],
+  },
+  // Institutional / museum-job vocabulary. Museum and gallery job descriptions
+  // never contain "react" / "typescript" — they speak in terms of collections,
+  // curatorial work, audience, and preservation. Without this bucket, Whitney /
+  // Sotheby's / institutional roles bottom out at keyword score ~12 and get
+  // archived before AI scoring ever sees them — exactly the highest-target
+  // contextual roles for this candidate.
+  description_institutional: {
+    weight: 10, // per match
+    cap: 30,
+    terms: [
+      "curatorial",
+      "collections",
+      "exhibition",
+      "conservation",
+      "interpretation",
+      "audience engagement",
+      "archives",
+      "digital preservation",
+      "visitor experience",
+      "gallery",
+      "museum",
+      "cultural institution",
+      "public programs",
     ],
   },
   location_nyc: {
