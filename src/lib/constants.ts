@@ -316,4 +316,25 @@ export const INITIAL_COMPANIES: CompanySeed[] = [
     custom_scraper: "mediabistro",
     priority: 2,
   },
+  {
+    name: "1stDibs",
+    ats: "greenhouse",
+    board_url: "https://boards.greenhouse.io/1stdibscom",
+    category: "art_world",
+    priority: 1,
+  },
+  {
+    name: "Vox Media",
+    ats: "greenhouse",
+    board_url: "https://job-boards.greenhouse.io/voxmedia",
+    category: "media",
+    priority: 2,
+  },
+  {
+    name: "New York Times",
+    ats: "greenhouse",
+    board_url: "https://job-boards.greenhouse.io/thenewyorktimes",
+    category: "media",
+    priority: 1,
+  },
 ];
