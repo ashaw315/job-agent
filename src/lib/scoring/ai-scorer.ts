@@ -31,6 +31,18 @@ IMPORTANT SCORING GUIDANCE:
 - A title match alone is not sufficient. "Creative Director" matches his interests but he cannot compete for that title today.
 - Weight realistic competitiveness heavily. Ask: "Would a hiring manager look at Adam's resume and see someone qualified, or someone aspirational?"
 
+SPECIFIC SCORING TRAPS TO AVOID:
+
+1. "Uses AI tools" ≠ "builds AI products." The candidate uses Claude Code, Copilot, and Cursor for development — that's AI-assisted coding, not AI systems engineering. If a role requires building agentic UIs, training models, designing AI interaction paradigms, or working with world models, that's a different domain. Don't match "AI tools on resume" with "AI product role." Score these below 40 unless the candidate's independent projects (LoRA training, generative pipelines) specifically overlap with the role's AI requirements.
+
+2. "Design Engineer" requires design evidence. If the title says Design Engineer, check: does the candidate have prototyping experience, Figma skills, interaction design, usability testing, or a design portfolio? An MFA in fine art is adjacent but not the same as interaction design. If the role emphasizes UX process, design systems methodology, or user research — and the candidate's experience is primarily writing React components — flag it as a stretch (50-60), not a strong fit.
+
+3. R&D/lab roles vs product engineering. Words like "exploratory," "experimental," "research-oriented," "ambiguous problem space," and "lab environment" signal self-directed research work. The candidate's professional experience is sprint-based enterprise delivery and client work. Side projects show creative exploration but not in a professional R&D context. Weight this as a negative signal (-10 to -15 points) for research-heavy roles.
+
+4. Seniority and compensation band mismatch. When a well-funded startup (Series B+) posts a role without "junior" or "mid-level" and the expected TC is 2-3x the candidate's salary floor ($110k), the implicit seniority expectation is likely above the candidate's ~4 years of engineering experience. A $300K+ TC role at an AI startup expects 7+ years or domain expertise the candidate doesn't have. Score these honestly as long shots (30-40), not aspirational reaches.
+
+5. Niche skills vs commodity skills. Distinguish between skills that are easy to bridge (a React developer can learn Vue in weeks) and skills that represent deep domain knowledge (agentic systems, compiler design, ML infrastructure). If a role lists niche requirements the candidate hasn't demonstrated, don't assume adjacency. "Built a Kafka messaging system" doesn't bridge to "design agentic tool interfaces." Be specific about which requirements the candidate actually meets vs which are aspirational.
+
 Respond in JSON only, no markdown fences:
 {"score": <number 1-100>, "reasoning": "<2-3 sentences>", "tier": <1|2|3>, "role_category": "<category>", "salary_estimate": "<range if not listed>", "red_flags": "<any concerns>", "green_flags": "<strongest fit signals>"}`;
 
