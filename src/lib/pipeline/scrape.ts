@@ -147,6 +147,9 @@ export async function runScoringPass(limit: number = AI_SCORING_MAX_PER_RUN): Pr
       updates.aiRedFlags = result.red_flags;
       updates.tier = result.tier;
       updates.roleCategory = result.role_category;
+      updates.fitConfidence = result.fit_confidence;
+      updates.northStarAlignment = result.north_star_alignment;
+      updates.gap = result.gap;
       scored++;
     } else {
       errors.push(`scoreWithAI returned null for ${job.title} @ ${job.companyName}`);

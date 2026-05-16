@@ -125,6 +125,9 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
           aiRedFlags: ai?.red_flags ?? null,
           tier: ai?.tier ?? null,
           roleCategory: ai?.role_category ?? null,
+          fitConfidence: ai?.fit_confidence ?? null,
+          northStarAlignment: ai?.north_star_alignment ?? null,
+          gap: ai?.gap ?? null,
         })
         .returning();
       inserted = result[0];

@@ -2,10 +2,13 @@ import { Job } from "../db/schema";
 import { AIScoreResponse } from "../types";
 import { AI_SCORING_MODEL, AI_SCORING_MAX_TOKENS } from "../constants";
 
-const AI_SCORING_PROMPT = `You are evaluating a job listing for fit with a specific candidate.
+const AI_SCORING_PROMPT = `You are evaluating job listings for a specific candidate. Your job is to determine realistic fit — not optimistic fit. Be skeptical. A hiring manager seeing this candidate's resume needs to feel "this person is qualified," not "this person is interesting but a stretch."
 
 ## Candidate Profile
 {profile}
+
+## North star
+The candidate's primary value is creative, institutional, and conceptual thinking. Code is the amplifier, not the identity. The best roles use his art-world background AND his engineering skills together. Pure engineering roles where the art/MFA background is irrelevant are a poor fit even when the tech stack matches.
 
 ## Job Listing
 Title: {title}
@@ -15,66 +18,139 @@ Salary: {salary}
 Description:
 {description}
 
-## Your Task
-Rate this job's fit on a scale of 1-100 and explain your reasoning. Consider:
-1. Does the candidate's technical skill set match the requirements?
-2. Does his MFA/art background add value or is it irrelevant?
-3. Is the experience level realistic (he has ~4 years in tech, ~15 years total professional)?
-4. Does the salary likely clear $110k (if not listed, estimate based on role/company/location)?
-5. Is this a role where he'd be competitive against the typical applicant pool?
-6. Does this align with his goal of finding a role that uses both creative and technical skills?
+────────────────────────────────────────────────────────
+## STEP 1 — Hard disqualifiers (auto-score 0)
 
-CORE FILTER: This candidate is looking for roles where creative, institutional, or conceptual thinking is the primary value — not roles where coding is the primary value. Code is his amplifier, not his identity.
+If ANY of these apply, return score: 0 and fit_confidence: "no_fit". Do not weigh other signals; the role is out of scope.
 
-Score HIGHER (+15 to +20) for roles where:
-- The work involves cultural, editorial, or artistic judgment
-- Domain expertise in art/museums/media matters more than technical stack
-- The person shapes what gets built, not just how it's built
-- Technical fluency is a differentiator among applicants, not a baseline requirement
-- The role bridges creative vision and technical execution
+Wrong primary skill stack (required, not "nice to have"):
+- Unity / Unreal / C++ / Rust / Go / Swift / Kotlin / Java at expert level
+- Cinema 4D / Blender / Houdini at expert level
+- Native iOS or Android development
+- Embedded / firmware / hardware engineering
+- Mechanical, electrical, chemical, or process engineering
+- ASIC / silicon / semiconductor / photonics
 
-Score LOWER (-15 to -20) for roles where:
-- The job is primarily writing code to someone else's spec
-- The value is speed of implementation, not quality of thinking
-- The role could be done by any competent engineer regardless of background
-- There's no creative, curatorial, or conceptual dimension
-- The job description reads as a pure engineering checklist
+Wrong experience level:
+- Required 8+ years of specific professional experience
+- "Senior" or "Staff" level requiring 7+ years engineering leadership
+- Director / VP / Head-of level
+- Required prior people-management experience
 
-CRITICAL: If you find yourself scoring a role primarily based on tech stack match (React, TypeScript, Node.js) without considering whether the ROLE CONTEXT values creative/institutional thinking, you are applying this filter incorrectly. A "Software Engineer" at a museum with creative responsibilities should score higher than a "Design Engineer" at a hardware company. Context matters more than title.
+Wrong employment model:
+- Freelance, contract, 1099, internship
+- Pure sales / business development / account management
+- Academic / faculty / postdoc / research-fellow positions
 
-COMPANY CONTEXT BONUSES:
-Apply a +15 point bonus when the company is in art, museums, cultural institutions, auction houses, or art-adjacent tech (Sotheby's, Christie's, 1stDibs, Artsy, Whitney, MoMA, any museum). The candidate has nearly a decade of hands-on gallery and institutional experience — this is genuine domain expertise, not adjacent interest.
+Wrong location:
+- On-site outside NYC metro and not remote-US-eligible
+- Visa-sponsorship required (he is a US citizen but the role asking implies it's not aimed at him)
 
-Apply a +10 point bonus for media/editorial companies (New York Times, Vox Media, Condé Nast, The Atlantic). The candidate has been to final rounds at NYT twice — he understands this world.
+If you auto-score 0, still fill out role_category honestly, set north_star_alignment to a short reason, and put the specific disqualifier in "gap". Skip the rest of the steps.
 
-Apply a +10 point bonus for creative studios and agencies that build interactive experiences (Deeplocal, Local Projects, Bluecadet, etc.). The candidate's fabrication skills + code + art background is the exact profile these studios hire for.
+────────────────────────────────────────────────────────
+## STEP 2 — Classify role_category
 
-These bonuses stack with the CORE FILTER adjustments. A Sotheby's Exhibition Designer should score 75-85, not 45.
+Pick exactly ONE from this closed set. Use "other" only if nothing fits.
 
-IMPORTANT SCORING GUIDANCE:
-- Be skeptical, not generous. A score of 70+ should mean "Adam would likely get an interview." A score of 50-69 means "worth applying but it's a stretch." Below 50 means "don't bother."
-- If the role requires specific professional experience Adam doesn't have (e.g., "5+ years leading brand campaigns"), score it below 40 regardless of other signals.
-- Distinguish between "nice to have" and "required" qualifications. Adam's MFA and art background can cover "nice to have" creative experience, but cannot substitute for required years in a specific professional discipline.
-- A title match alone is not sufficient. "Creative Director" matches his interests but he cannot compete for that title today.
-- Weight realistic competitiveness heavily. Ask: "Would a hiring manager look at Adam's resume and see someone qualified, or someone aspirational?"
+- creative_technologist — bridges creative concept and code (studios, R&D labs that ship public-facing experiences)
+- experience_designer — interactive installations, exhibits, immersive
+- exhibition_designer — museum / gallery exhibitions, physical + digital
+- design_technologist — codes design systems / prototypes / front-end with strong design judgment
+- digital_preservation — archives, conservation, collections, digitization
+- creative_ops — production / operations inside creative orgs
+- creative_producer — produces creative work, runs projects across creative + tech
+- design_strategist — frames problems for design / brand teams
+- design_engineer — front-end engineering with design literacy (the saturated, often-mismatched bucket)
+- art_world_tech — engineering inside auction houses, galleries, art platforms
+- media_editorial — engineering / product inside editorial / publishing orgs
+- engineering_creative — generalist engineering inside a creative-adjacent company
+- other — none of the above
 
-SPECIFIC SCORING TRAPS TO AVOID:
+────────────────────────────────────────────────────────
+## STEP 3 — Base score from the 5-band framework
 
-1. "Uses AI tools" ≠ "builds AI products." The candidate uses Claude Code, Copilot, and Cursor for development — that's AI-assisted coding, not AI systems engineering. If a role requires building agentic UIs, training models, designing AI interaction paradigms, or working with world models, that's a different domain. Don't match "AI tools on resume" with "AI product role." Score these below 40 unless the candidate's independent projects (LoRA training, generative pipelines) specifically overlap with the role's AI requirements.
+Pick the band that best matches the role. Score within the band.
 
-2. "Design Engineer" requires design evidence. If the title says Design Engineer, check: does the candidate have prototyping experience, Figma skills, interaction design, usability testing, or a design portfolio? An MFA in fine art is adjacent but not the same as interaction design. If the role emphasizes UX process, design systems methodology, or user research — and the candidate's experience is primarily writing React components — flag it as a stretch (50-60), not a strong fit.
+80–100 — Competitive fit. Adam would likely get an interview. Role uses both art-world background AND engineering. Title and seniority match. Stack overlaps significantly. fit_confidence: "competitive".
 
-3. R&D/lab roles vs product engineering. Words like "exploratory," "experimental," "research-oriented," "ambiguous problem space," and "lab environment" signal self-directed research work. The candidate's professional experience is sprint-based enterprise delivery and client work. Side projects show creative exploration but not in a professional R&D context. Weight this as a negative signal (-10 to -15 points) for research-heavy roles.
+65–79 — Strong stretch. Honest shot — most boxes check, but one notable gap (slightly senior, partial stack overlap, or art-background-as-bonus rather than-required). fit_confidence: "stretch".
 
-4. Seniority and compensation band mismatch. When a well-funded startup (Series B+) posts a role without "junior" or "mid-level" and the expected TC is 2-3x the candidate's salary floor ($110k), the implicit seniority expectation is likely above the candidate's ~4 years of engineering experience. A $300K+ TC role at an AI startup expects 7+ years or domain expertise the candidate doesn't have. Score these honestly as long shots (30-40), not aspirational reaches.
+50–64 — Real stretch. Plausible but the gap is real (seniority, niche stack, or the creative dimension is thin). Apply only if energized. fit_confidence: "stretch".
 
-5. Niche skills vs commodity skills. Distinguish between skills that are easy to bridge (a React developer can learn Vue in weeks) and skills that represent deep domain knowledge (agentic systems, compiler design, ML infrastructure). If a role lists niche requirements the candidate hasn't demonstrated, don't assume adjacency. "Built a Kafka messaging system" doesn't bridge to "design agentic tool interfaces." Be specific about which requirements the candidate actually meets vs which are aspirational.
+35–49 — Long shot. The role is interesting but the fit isn't there yet — wrong seniority, wrong specialization, or weak north-star alignment. fit_confidence: "long_shot".
 
-ADDITIONAL SCORING DIMENSION:
-This candidate is also interested in non-engineering roles where coding ability is a competitive advantage even if not explicitly required. Roles like creative producer, creative operations manager, brand marketing manager, or editorial roles at companies where technical fluency differentiates him from other applicants. If the role would benefit from someone who can code (automate workflows, build internal tools, prototype concepts, speak to engineers credibly) even though it doesn't list coding as a requirement, add 10-15 points to the score and note this in green_flags as "coding as competitive edge."
+Below 35 — Poor fit. Tech-stack-only match, no creative dimension, or material disqualifier that didn't quite hit STEP 1. fit_confidence: "long_shot" or "no_fit".
+
+────────────────────────────────────────────────────────
+## STEP 4 — Apply company-context modifier
+
+Add the modifier to the band score. Modifiers stack with band placement but should not push a no-fit into competitive — if you're tempted to apply +15 to a role that fails STEP 1 hard, recheck STEP 1.
+
++15 — Museums, cultural institutions, auction houses (Sotheby's, Christie's, Whitney, MoMA, New Museum, Met, Guggenheim, Smithsonian, etc.). The candidate's gallery/institutional background is genuine domain expertise.
++15 — Experiential / interactive studios (Local Projects, Bluecadet, Deeplocal, MediaMonks, Active Theory, etc.). Fabrication + code + art is exactly the profile they hire.
++10 — Art-adjacent tech / collecting / art platforms (1stDibs, Artsy, Saatchi, Artnet, etc.).
++10 — Design consultancies and brand studios (IDEO, frog, Pentagram, Sub Rosa, Instrument, etc.).
++10 — Design-forward tech (Linear, Vercel, Figma, Stripe design org, Notion design org).
++5  — Media / editorial (New York Times, Vox Media, Condé Nast, The Atlantic, The New Yorker, Hearst).
++5  — AI creative-tools companies (Runway, Krea, Recraft) — only when the role is design/creative-side, not ML-research side.
+ 0  — Generic tech / SaaS / enterprise software with no creative dimension.
+-10 — Enterprise consulting, big-co IT, agencies-as-staff-aug.
+-15 — Defense / enterprise SaaS / fintech back-office.
+-20 — Companies with no creative dimension AND no art-world overlap AND in domains the candidate has no signal in (logistics, supply chain, ad-tech back-office, etc.).
+
+────────────────────────────────────────────────────────
+## STEP 5 — Sanity traps (apply BEFORE finalizing)
+
+These traps recur. Walk through them explicitly before locking the score.
+
+1. "Uses AI tools" ≠ "builds AI products." Adam uses Claude / Copilot / Cursor. That is AI-assisted coding, not building agentic systems, training models, or designing AI UX. If the role requires the latter, do not score it as a strong fit on the basis of "AI experience."
+
+2. "Design Engineer" requires design evidence. Title is one of the most overloaded in tech. If the role emphasizes Figma fluency, design-systems methodology, prototyping, interaction design, user research, or a portfolio — Adam's MFA in fine art is adjacent, not the same. Without explicit interaction-design / Figma / design-systems work, a design-engineer role tops out around 65.
+
+3. R&D / lab / "experimental" roles. Words like "exploratory," "ambiguous problem space," "lab environment" signal self-directed research. Adam's professional experience is sprint-based enterprise delivery; the research dimension lives in side projects. Penalize -10 to -15 for research-heavy roles unless the company is explicitly hiring the artist-coder profile.
+
+4. Seniority + comp mismatch. Series B+ startup, no "junior/mid" qualifier, TC $300k+ implies 7+ years or domain expertise the candidate lacks. Score honestly as long shot, not aspirational reach.
+
+5. Tech-stack-only match. If the only reason a generic tech role scores well is because React + TypeScript appears, and the company has zero creative / institutional dimension — that role tops out around 55. Stack overlap alone is not a strong fit for this candidate.
+
+6. "Coding as competitive edge" for non-engineering roles. If the role is creative producer, creative ops, brand marketing, editorial — and Adam's coding fluency would differentiate him from typical applicants (automate workflows, build internal tools, prototype concepts, talk to engineers) — add +10 to +15 and note it in green_flags. This is genuinely the most undervalued vector.
+
+────────────────────────────────────────────────────────
+## Final output
+
+Be honest about gaps. A score in the 35–49 band is not a failure — it's accurate. The candidate has time to apply to ~5 jobs a day; misrating long shots as competitive wastes that budget.
+
+Set fit_confidence based on band:
+- 80–100 → "competitive"
+- 50–79 → "stretch"
+- 35–49 → "long_shot"
+- below 35 → "no_fit"
+
+north_star_alignment: ONE short sentence on whether/how this role uses creative + institutional + conceptual thinking as primary value (vs. coding as primary value). Be concrete — "uses art-world judgment" beats "creative role."
+
+gap: For scores below 65, ONE short sentence naming the single biggest thing missing for this candidate (seniority, stack, domain, employment model). For scores 65+, can be empty string "".
 
 Respond in JSON only, no markdown fences:
-{"score": <number 1-100>, "reasoning": "<2-3 sentences>", "tier": <1|2|3>, "role_category": "<category>", "salary_estimate": "<range if not listed>", "red_flags": "<any concerns>", "green_flags": "<strongest fit signals>"}`;
+{"score": <number 0-100>, "reasoning": "<2-3 sentences>", "tier": <1|2|3>, "role_category": "<one of the 13 categories>", "fit_confidence": "<competitive|stretch|long_shot|no_fit>", "north_star_alignment": "<one sentence>", "gap": "<one sentence or empty>", "salary_estimate": "<range if not listed>", "red_flags": "<concerns>", "green_flags": "<strongest fit signals>"}`;
+
+const VALID_ROLE_CATEGORIES = new Set([
+  "creative_technologist",
+  "experience_designer",
+  "exhibition_designer",
+  "design_technologist",
+  "digital_preservation",
+  "creative_ops",
+  "creative_producer",
+  "design_strategist",
+  "design_engineer",
+  "art_world_tech",
+  "media_editorial",
+  "engineering_creative",
+  "other",
+]);
+
+const VALID_FIT_CONFIDENCE = new Set(["competitive", "stretch", "long_shot", "no_fit"]);
 
 /**
  * Score a job using Claude API.
@@ -123,9 +199,20 @@ export async function scoreWithAI(job: Job, profile: string): Promise<AIScoreRes
     const clean = text.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
     const parsed: AIScoreResponse = JSON.parse(clean);
 
-    if (typeof parsed.score !== "number" || parsed.score < 1 || parsed.score > 100) {
+    // Score range: 0-100 (0 is reserved for hard disqualifiers).
+    if (typeof parsed.score !== "number" || parsed.score < 0 || parsed.score > 100) {
       console.error("AI score out of range:", parsed.score);
       return null;
+    }
+
+    if (!VALID_ROLE_CATEGORIES.has(parsed.role_category)) {
+      console.warn(`AI returned unknown role_category "${parsed.role_category}" — coercing to "other"`);
+      parsed.role_category = "other";
+    }
+
+    if (!VALID_FIT_CONFIDENCE.has(parsed.fit_confidence)) {
+      console.warn(`AI returned unknown fit_confidence "${parsed.fit_confidence}" — coercing to "long_shot"`);
+      parsed.fit_confidence = "long_shot";
     }
 
     return parsed;

@@ -27,11 +27,31 @@ export interface ScrapeResult {
 
 // ─── AI Scoring Types ─────────────────────────────────────────────
 
+export type FitConfidence = "competitive" | "stretch" | "long_shot" | "no_fit";
+
+export type RoleCategory =
+  | "creative_technologist"
+  | "experience_designer"
+  | "exhibition_designer"
+  | "design_technologist"
+  | "digital_preservation"
+  | "creative_ops"
+  | "creative_producer"
+  | "design_strategist"
+  | "design_engineer"
+  | "art_world_tech"
+  | "media_editorial"
+  | "engineering_creative"
+  | "other";
+
 export interface AIScoreResponse {
   score: number;
   reasoning: string;
   tier: 1 | 2 | 3;
-  role_category: string;
+  role_category: RoleCategory;
+  fit_confidence: FitConfidence;
+  north_star_alignment: string;
+  gap: string;
   salary_estimate: string;
   red_flags: string;
   green_flags: string;

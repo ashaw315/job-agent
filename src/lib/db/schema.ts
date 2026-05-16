@@ -41,6 +41,9 @@ export const jobs = pgTable(
     aiGreenFlags: text("ai_green_flags"),
     aiRedFlags: text("ai_red_flags"),
     aiScoredAt: timestamp("ai_scored_at", { withTimezone: true }),
+    fitConfidence: text("fit_confidence"),
+    northStarAlignment: text("north_star_alignment"),
+    gap: text("gap"),
 
     // Application tracking
     status: text("status").default("new").notNull(),
