@@ -4,6 +4,7 @@ import { useMemo, useEffect, useRef } from "react";
 import type { Job } from "@/lib/db/schema";
 import { scoreDisplay, relativeDate, tierColor } from "@/lib/format";
 import type { Filters, Sort, SortField, StatusValue } from "./types";
+import { SOURCE_CATEGORY_SLUGS } from "./types";
 
 interface JobTableProps {
   jobs: Job[];
@@ -38,6 +39,10 @@ export default function JobTable({
       if (filters.status && j.status !== filters.status) return false;
       if (filters.tier !== null && j.tier !== filters.tier) return false;
       if (filters.minScore > 0 && scoreDisplay(j).value < filters.minScore) return false;
+      if (filters.sourceCategory !== null) {
+        const allowed = SOURCE_CATEGORY_SLUGS[filters.sourceCategory];
+        if (!allowed.includes(j.source)) return false;
+      }
       if (searchLower) {
         const hay = `${j.title} ${j.companyDisplayName ?? j.companyName ?? ""}`.toLowerCase();
         if (!hay.includes(searchLower)) return false;

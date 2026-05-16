@@ -1,7 +1,7 @@
 "use client";
 
 import { forwardRef } from "react";
-import type { Filters, StatusValue } from "./types";
+import type { Filters, StatusValue, SourceCategory } from "./types";
 
 interface FilterBarProps {
   filters: Filters;
@@ -22,6 +22,13 @@ const TIER_CHIPS: { value: 1 | 2 | 3 | null; label: string }[] = [
   { value: 1, label: "T1" },
   { value: 2, label: "T2" },
   { value: 3, label: "T3" },
+];
+
+const SOURCE_CHIPS: { value: SourceCategory | null; label: string }[] = [
+  { value: null, label: "All sources" },
+  { value: "boards", label: "Boards" },
+  { value: "aggregators", label: "Aggregators" },
+  { value: "manual", label: "Manual" },
 ];
 
 const FilterBar = forwardRef<HTMLInputElement, FilterBarProps>(function FilterBar(
@@ -66,6 +73,29 @@ const FilterBar = forwardRef<HTMLInputElement, FilterBarProps>(function FilterBa
                 (isActive
                   ? "bg-[color:var(--accent-bg)] text-[color:var(--accent)]"
                   : "text-[color:var(--text-sec)] hover:text-[color:var(--text-pri)]")
+              }
+            >
+              {c.label}
+            </button>
+          );
+        })}
+      </div>
+
+      <span className="mx-1 h-3 w-px bg-[color:var(--border)]" />
+
+      {/* Source category chips */}
+      <div className="flex items-center gap-3">
+        {SOURCE_CHIPS.map(c => {
+          const isActive = filters.sourceCategory === c.value;
+          return (
+            <button
+              key={c.label}
+              onClick={() => onChange({ ...filters, sourceCategory: c.value })}
+              className={
+                "border-b py-1 transition-colors " +
+                (isActive
+                  ? "border-[color:var(--accent)] text-[color:var(--text-pri)]"
+                  : "border-transparent text-[color:var(--text-sec)] hover:text-[color:var(--text-pri)]")
               }
             >
               {c.label}
