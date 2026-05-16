@@ -73,6 +73,7 @@ export const watchedCompanies = pgTable(
     ats: text("ats").notNull(),
     boardUrl: text("board_url").notNull().unique(),
     customScraper: text("custom_scraper"),
+    searchTag: text("search_tag"),
     category: text("category"),
     priority: integer("priority").default(2).notNull(),
     lastScraped: timestamp("last_scraped", { withTimezone: true }),

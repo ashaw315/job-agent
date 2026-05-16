@@ -3,7 +3,7 @@ import type { WatchedCompany } from "@/lib/db/schema";
 import { fetchAndParse, assertLandmark, truncateDescription, ScraperError } from "./util";
 
 const SLUG = "dribbble";
-const BOARD_URL = "https://dribbble.com/jobs";
+const DEFAULT_BOARD_URL = "https://dribbble.com/jobs";
 
 /**
  * Scrape Dribbble's Jobs board — design and creative roles, primarily product/visual/UX design.
@@ -26,7 +26,7 @@ export async function scrapeDribbble(company: WatchedCompany): Promise<ScrapeRes
   };
 
   try {
-    const $ = await fetchAndParse(BOARD_URL);
+    const $ = await fetchAndParse(company.boardUrl || DEFAULT_BOARD_URL);
     assertLandmark($, "li.job-list-item", SLUG, 1);
 
     $("li.job-list-item").each((_, el) => {

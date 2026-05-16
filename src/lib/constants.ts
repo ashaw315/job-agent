@@ -131,6 +131,7 @@ export interface CompanySeed {
   priority?: 1 | 2 | 3;
   is_active?: boolean;
   custom_scraper?: string;
+  search_tag?: string;
 }
 
 export const INITIAL_COMPANIES: CompanySeed[] = [
@@ -261,12 +262,15 @@ export const INITIAL_COMPANIES: CompanySeed[] = [
 
   // Custom: aggregators and museums (Phase 4 Wave A)
   {
+    // Broad scrape — superseded by targeted search-URL rows below. Kept here
+    // (inactive) so a fresh seed doesn't accidentally re-add it.
     name: "BuiltInNYC",
     ats: "custom",
     board_url: "https://www.builtinnyc.com/jobs",
     category: "aggregator",
     custom_scraper: "builtinnyc",
     priority: 2,
+    is_active: false,
   },
   {
     name: "We Work Remotely",
@@ -301,20 +305,24 @@ export const INITIAL_COMPANIES: CompanySeed[] = [
     priority: 1,
   },
   {
+    // Broad scrape — superseded by targeted search-URL rows below.
     name: "Dribbble",
     ats: "custom",
     board_url: "https://dribbble.com/jobs",
     category: "aggregator",
     custom_scraper: "dribbble",
     priority: 1,
+    is_active: false,
   },
   {
+    // Broad scrape — superseded by targeted search-URL rows below.
     name: "Mediabistro",
     ats: "custom",
     board_url: "https://www.mediabistro.com/jobs?location=New+York",
     category: "aggregator",
     custom_scraper: "mediabistro",
     priority: 2,
+    is_active: false,
   },
   {
     name: "1stDibs",
@@ -335,6 +343,199 @@ export const INITIAL_COMPANIES: CompanySeed[] = [
     ats: "greenhouse",
     board_url: "https://job-boards.greenhouse.io/thenewyorktimes",
     category: "media",
+    priority: 1,
+  },
+
+  // Targeted search-URL rows for aggregator sources. Each row is a separate
+  // (search-term × source) scrape; the (external_id, source) unique constraint
+  // dedupes the same job appearing across overlapping searches. See:
+  // - BuiltInNYC, Dribbble, Mediabistro: broad rows above are inactive.
+  // - Awwwards: query params are ignored by the site; kept as a single broad
+  //   row above. The site is small enough that everything is relevant.
+
+  // BuiltInNYC — already NYC-scoped, so no location param needed.
+  {
+    name: "BuiltInNYC — creative technologist",
+    ats: "custom",
+    board_url: "https://www.builtinnyc.com/jobs?search=creative+technologist",
+    category: "aggregator",
+    custom_scraper: "builtinnyc",
+    search_tag: "creative technologist",
+    priority: 1,
+  },
+  {
+    name: "BuiltInNYC — design engineer",
+    ats: "custom",
+    board_url: "https://www.builtinnyc.com/jobs?search=design+engineer",
+    category: "aggregator",
+    custom_scraper: "builtinnyc",
+    search_tag: "design engineer",
+    priority: 1,
+  },
+  {
+    name: "BuiltInNYC — creative developer",
+    ats: "custom",
+    board_url: "https://www.builtinnyc.com/jobs?search=creative+developer",
+    category: "aggregator",
+    custom_scraper: "builtinnyc",
+    search_tag: "creative developer",
+    priority: 1,
+  },
+  {
+    name: "BuiltInNYC — creative producer",
+    ats: "custom",
+    board_url: "https://www.builtinnyc.com/jobs?search=creative+producer",
+    category: "aggregator",
+    custom_scraper: "builtinnyc",
+    search_tag: "creative producer",
+    priority: 1,
+  },
+  {
+    name: "BuiltInNYC — digital producer",
+    ats: "custom",
+    board_url: "https://www.builtinnyc.com/jobs?search=digital+producer",
+    category: "aggregator",
+    custom_scraper: "builtinnyc",
+    search_tag: "digital producer",
+    priority: 1,
+  },
+  {
+    name: "BuiltInNYC — creative operations",
+    ats: "custom",
+    board_url: "https://www.builtinnyc.com/jobs?search=creative+operations",
+    category: "aggregator",
+    custom_scraper: "builtinnyc",
+    search_tag: "creative operations",
+    priority: 1,
+  },
+  {
+    name: "BuiltInNYC — interaction designer",
+    ats: "custom",
+    board_url: "https://www.builtinnyc.com/jobs?search=interaction+designer",
+    category: "aggregator",
+    custom_scraper: "builtinnyc",
+    search_tag: "interaction designer",
+    priority: 1,
+  },
+  {
+    name: "BuiltInNYC — exhibition designer",
+    ats: "custom",
+    board_url: "https://www.builtinnyc.com/jobs?search=exhibition+designer",
+    category: "aggregator",
+    custom_scraper: "builtinnyc",
+    search_tag: "exhibition designer",
+    priority: 1,
+  },
+
+  // Dribbble — keyword + location params (verified live).
+  {
+    name: "Dribbble — creative technologist (global)",
+    ats: "custom",
+    board_url: "https://dribbble.com/jobs?keyword=creative+technologist",
+    category: "aggregator",
+    custom_scraper: "dribbble",
+    search_tag: "creative technologist",
+    priority: 1,
+  },
+  {
+    name: "Dribbble — creative developer (global)",
+    ats: "custom",
+    board_url: "https://dribbble.com/jobs?keyword=creative+developer",
+    category: "aggregator",
+    custom_scraper: "dribbble",
+    search_tag: "creative developer",
+    priority: 1,
+  },
+  {
+    name: "Dribbble — design engineer (global)",
+    ats: "custom",
+    board_url: "https://dribbble.com/jobs?keyword=design+engineer",
+    category: "aggregator",
+    custom_scraper: "dribbble",
+    search_tag: "design engineer",
+    priority: 1,
+  },
+  {
+    name: "Dribbble — creative producer (global)",
+    ats: "custom",
+    board_url: "https://dribbble.com/jobs?keyword=creative+producer",
+    category: "aggregator",
+    custom_scraper: "dribbble",
+    search_tag: "creative producer",
+    priority: 1,
+  },
+  {
+    name: "Dribbble — interaction designer (global)",
+    ats: "custom",
+    board_url: "https://dribbble.com/jobs?keyword=interaction+designer",
+    category: "aggregator",
+    custom_scraper: "dribbble",
+    search_tag: "interaction designer",
+    priority: 1,
+  },
+  {
+    name: "Dribbble — motion designer (global)",
+    ats: "custom",
+    board_url: "https://dribbble.com/jobs?keyword=motion+designer",
+    category: "aggregator",
+    custom_scraper: "dribbble",
+    search_tag: "motion designer",
+    priority: 1,
+  },
+
+  // Mediabistro — location already pinned to NYC.
+  {
+    name: "Mediabistro — creative",
+    ats: "custom",
+    board_url: "https://www.mediabistro.com/jobs?location=New+York&search=creative",
+    category: "aggregator",
+    custom_scraper: "mediabistro",
+    search_tag: "creative",
+    priority: 1,
+  },
+  {
+    name: "Mediabistro — developer",
+    ats: "custom",
+    board_url: "https://www.mediabistro.com/jobs?location=New+York&search=developer",
+    category: "aggregator",
+    custom_scraper: "mediabistro",
+    search_tag: "developer",
+    priority: 1,
+  },
+  {
+    name: "Mediabistro — design engineer",
+    ats: "custom",
+    board_url: "https://www.mediabistro.com/jobs?location=New+York&search=design+engineer",
+    category: "aggregator",
+    custom_scraper: "mediabistro",
+    search_tag: "design engineer",
+    priority: 1,
+  },
+  {
+    name: "Mediabistro — producer",
+    ats: "custom",
+    board_url: "https://www.mediabistro.com/jobs?location=New+York&search=producer",
+    category: "aggregator",
+    custom_scraper: "mediabistro",
+    search_tag: "producer",
+    priority: 1,
+  },
+  {
+    name: "Mediabistro — operations",
+    ats: "custom",
+    board_url: "https://www.mediabistro.com/jobs?location=New+York&search=operations",
+    category: "aggregator",
+    custom_scraper: "mediabistro",
+    search_tag: "operations",
+    priority: 1,
+  },
+  {
+    name: "Mediabistro — technologist",
+    ats: "custom",
+    board_url: "https://www.mediabistro.com/jobs?location=New+York&search=technologist",
+    category: "aggregator",
+    custom_scraper: "mediabistro",
+    search_tag: "technologist",
     priority: 1,
   },
 ];

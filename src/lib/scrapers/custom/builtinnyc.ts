@@ -3,7 +3,7 @@ import type { WatchedCompany } from "@/lib/db/schema";
 import { fetchAndParse, assertLandmark, truncateDescription, ScraperError } from "./util";
 
 const SLUG = "builtinnyc";
-const BOARD_URL = "https://www.builtinnyc.com/jobs";
+const DEFAULT_BOARD_URL = "https://www.builtinnyc.com/jobs";
 
 /**
  * Scrape BuiltInNYC's NYC jobs feed.
@@ -25,7 +25,7 @@ export async function scrapeBuiltInNYC(company: WatchedCompany): Promise<ScrapeR
   };
 
   try {
-    const $ = await fetchAndParse(BOARD_URL);
+    const $ = await fetchAndParse(company.boardUrl || DEFAULT_BOARD_URL);
     assertLandmark($, "[data-id='job-card']", SLUG, 1);
 
     $("[data-id='job-card']").each((_, el) => {

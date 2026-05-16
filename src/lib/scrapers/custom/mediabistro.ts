@@ -3,7 +3,7 @@ import type { WatchedCompany } from "@/lib/db/schema";
 import { fetchAndParse, assertLandmark, truncateDescription, ScraperError } from "./util";
 
 const SLUG = "mediabistro";
-const BOARD_URL = "https://www.mediabistro.com/jobs?location=New+York";
+const DEFAULT_BOARD_URL = "https://www.mediabistro.com/jobs?location=New+York";
 
 /**
  * Scrape Mediabistro's NYC-filtered jobs feed — editorial, creative, marketing, and media-tech.
@@ -32,7 +32,7 @@ export async function scrapeMediabistro(company: WatchedCompany): Promise<Scrape
   };
 
   try {
-    const $ = await fetchAndParse(BOARD_URL);
+    const $ = await fetchAndParse(company.boardUrl || DEFAULT_BOARD_URL);
     assertLandmark($, "main ul li h3", SLUG, 1);
 
     $("main ul li").each((_, el) => {
