@@ -150,6 +150,12 @@ export async function runScoringPass(limit: number = AI_SCORING_MAX_PER_RUN): Pr
       updates.fitConfidence = result.fit_confidence;
       updates.northStarAlignment = result.north_star_alignment;
       updates.gap = result.gap;
+      // STEP-1 hard disqualifier in the AI prompt: score 0 means out-of-scope.
+      // Archive immediately so the dashboard doesn't surface known no-fit roles.
+      if (result.score === 0) {
+        updates.isActive = false;
+        updates.status = "passed";
+      }
       scored++;
     } else {
       errors.push(`scoreWithAI returned null for ${job.title} @ ${job.companyName}`);

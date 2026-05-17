@@ -26,6 +26,7 @@ interface KeywordScoreResult {
 export function scoreKeywords(job: ScrapedJob): KeywordScoreResult {
   let score = 0;
   let titleDisqualifierHit = false;
+  let titleExactHit = false;
   const titleLower = job.title.toLowerCase();
   const descLower = (job.description || "").toLowerCase();
   const locationLower = (job.location || "").toLowerCase();
@@ -34,6 +35,7 @@ export function scoreKeywords(job: ScrapedJob): KeywordScoreResult {
   for (const term of POSITIVE_SIGNALS.title_exact.terms) {
     if (titleLower.includes(term)) {
       score += POSITIVE_SIGNALS.title_exact.weight;
+      titleExactHit = true;
       break; // Only count once even if multiple match
     }
   }
@@ -104,11 +106,20 @@ export function scoreKeywords(job: ScrapedJob): KeywordScoreResult {
   // A title_negative match is a hard disqualifier, not just a score penalty.
   // We still apply the weight (so the final score reflects the hit), but the
   // job is also force-archived regardless of how high positives push the score.
-  // This catches cases like "Sr. Silicon Photonics Design Engineer" where the
-  // +30 from "design engineer" title_exact overpowers the -30 silicon penalty.
+  //
+  // Compound case: if title_exact ALSO matched (e.g. "Sr. Silicon Photonics
+  // Design Engineer" hits both "design engineer" +30 and "silicon" -30), the
+  // negative wins. A title cannot be both a perfect match and a disqualifier;
+  // the disqualifying word is more specific signal than the matching one.
+  // To make the compound case impossible to ignore in audits, we also strip
+  // the +30 from title_exact in that scenario so the final score reflects
+  // "disqualified" rather than "neutral".
   for (const term of NEGATIVE_SIGNALS.title_negative.terms) {
     if (titleLower.includes(term)) {
       score += NEGATIVE_SIGNALS.title_negative.weight;
+      if (titleExactHit) {
+        score -= POSITIVE_SIGNALS.title_exact.weight;
+      }
       titleDisqualifierHit = true;
       break;
     }

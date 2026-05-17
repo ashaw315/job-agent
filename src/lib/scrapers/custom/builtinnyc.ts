@@ -40,10 +40,19 @@ export async function scrapeBuiltInNYC(company: WatchedCompany): Promise<ScrapeR
       const sourceUrl = href ? `https://www.builtinnyc.com${href}` : "";
 
       // Location is harder — card text concatenates: "<company> <title> <postedDate> <workStyle> <location> <salary> <level>..."
-      // Best heuristic: pick the substring matching "(City), (State|abbrev)" or "Remote"
+      // Best heuristic: pick the substring matching "(City), (State|abbrev)" or "Remote".
+      // When the regex matches the bare work-style label ("In-Office" / "Hybrid")
+      // without a city, default to NYC: BuiltInNYC is an NYC-scoped board, so a
+      // role tagged "In-Office" but with no city is overwhelmingly an NYC office.
+      // The "(via BuiltInNYC)" suffix signals the location was inferred, not
+      // extracted — useful for downstream audits.
       const cleanText = card.text().replace(/\s+/g, " ").trim();
       const locMatch = cleanText.match(/((?:New York|Brooklyn|Manhattan|Queens|Bronx|Staten Island)[,\s][A-Z]{2}|Remote|Hybrid|In-Office)/i);
-      const location = locMatch ? locMatch[1] : "";
+      const rawLocation = locMatch ? locMatch[1] : "";
+      const isBareWorkStyle = /^(in-office|hybrid)$/i.test(rawLocation);
+      const location = isBareWorkStyle
+        ? `New York, NY (via BuiltInNYC, ${rawLocation.toLowerCase()})`
+        : (rawLocation || "New York, NY (via BuiltInNYC)");
 
       if (!title || !externalId) return; // skip malformed
 

@@ -43,7 +43,7 @@ Wrong employment model:
 - Academic / faculty / postdoc / research-fellow positions
 
 Wrong location:
-- On-site outside NYC metro and not remote-US-eligible
+- On-site or hybrid roles MUST be in the NYC metro area (New York City, Brooklyn, Manhattan, Queens, Bronx, Jersey City, Hoboken). Boston, Washington DC, San Francisco, Philadelphia, Tel Aviv, London, and all other non-NYC locations are disqualifiers unless the listing explicitly says "remote" or lists NYC as one of multiple office options. When in doubt about location, check the full description.
 - Visa-sponsorship required (he is a US citizen but the role asking implies it's not aimed at him)
 
 If you auto-score 0, still fill out role_category honestly, set north_star_alignment to a short reason, and put the specific disqualifier in "gap". Skip the rest of the steps.

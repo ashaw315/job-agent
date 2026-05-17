@@ -147,7 +147,11 @@ export const NEGATIVE_SIGNALS = {
 // Keyword score thresholds
 export const SCORE_THRESHOLD_ARCHIVE = 35;
 export const SCORE_THRESHOLD_SURFACE = 50;
-export const SCORE_THRESHOLD_AI = 45; // Minimum keyword score to trigger AI scoring
+// Minimum keyword score to trigger AI scoring. Set equal to SCORE_THRESHOLD_ARCHIVE
+// (35) so anything that survives the archive gate gets AI judgment — closes the
+// "stuck at 35" trap where jobs landed exactly on the archive boundary but never
+// reached AI scoring (e.g., NYT Graphics Multimedia Editor, NYT T Brand Studio).
+export const SCORE_THRESHOLD_AI = 35;
 export const SCORE_THRESHOLD_DIGEST_TOP = 70; // AI score for "top jobs" in digest
 export const SCORE_THRESHOLD_DIGEST_INTERESTING = 50; // AI score for "interesting" in digest
 
