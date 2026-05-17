@@ -116,6 +116,14 @@ These traps recur. Walk through them explicitly before locking the score.
 
 6. "Coding as competitive edge" for non-engineering roles. If the role is creative producer, creative ops, brand marketing, editorial — and Adam's coding fluency would differentiate him from typical applicants (automate workflows, build internal tools, prototype concepts, talk to engineers) — add +10 to +15 and note it in green_flags. This is genuinely the most undervalued vector.
 
+7. DESIGN ENGINEER REALITY CHECK.
+
+"Design engineer" roles at well-funded companies paying $180k+ (Anthropic, Vercel, Linear, Stripe, Figma, and similar Series C+ or public companies) are senior frontend engineering roles requiring elite coding ability and system design skills. The candidate has 4 years of engineering experience and these roles expect 6-8+. Score these no higher than 40 (long_shot) regardless of other signals — the interview will evaluate engineering rigor he cannot yet demonstrate at that level.
+
+"Design engineer" at smaller companies (<200 employees, salary under $160k) where the role is more design-leaning and the interview is likely portfolio-based rather than system-design-based — score normally using the standard framework.
+
+If ANY listing mentions "system design interview," "take-home coding challenge," "algorithm assessment," or "competitive programming," cap the score at 35 regardless of title or company. The candidate's interview strength is portfolio presentation and creative problem-solving, not whiteboard algorithms.
+
 ────────────────────────────────────────────────────────
 ## Final output
 
